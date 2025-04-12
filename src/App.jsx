@@ -1,22 +1,24 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import TopNavbar from './components/TopNavbar/TopNavbar';
-import './App.css';
+import HomePage from './components/HomePage/HomePage';
 
 function App() {
   return (
-    <div className="App">
-      <TopNavbar />
-      {/* Main content with padding top to prevent navbar overlap */}
-      <div className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-center">
-            Welcome to Energy Auditors Study Centre
-          </h1>
-          <p className="mt-2 text-center">
-            Your premier destination for energy auditing education and resources
-          </p>
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <TopNavbar />
+        <div>
+          {/* Routes with HomePage component */}
+          <Routes>
+            <Route path="/" element={<HomePage/>} />
+            <Route path="/about" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">About Us Content</div>} />
+            <Route path="/courses" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Courses Content</div>} />
+            <Route path="/contact" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Contact Us Content</div>} />
+            <Route path="/login" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Login Content</div>} />
+          </Routes>
         </div>
       </div>
-    </div>
+    </Router>
   );
 }
 
