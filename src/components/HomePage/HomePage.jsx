@@ -10,7 +10,7 @@ const HomePage = () => {
     const interval = setInterval(() => {
       setCounts(prev => ({
         students: prev.students < 2500 ? prev.students + 50 : 2500,
-        courses: prev.courses < 50 ? prev.courses + 1 : 50,
+        courses: prev.courses < 6 ? prev.courses + 1 : 6,
         years: prev.years < 15 ? prev.years + 1 : 15
       }));
     }, 50);

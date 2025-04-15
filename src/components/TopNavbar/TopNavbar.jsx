@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Users, Home, Phone, LogIn,Briefcase } from 'lucide-react';
+import { Menu, X, BookOpen, Users, Home, Phone, LogIn,Briefcase,PenLine } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logo from "../../assets/EASC-logo.png";
+import Services from '../Pages/Services';
 
 const TopNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,6 +33,7 @@ const TopNavbar = () => {
         { name: 'About Us', icon: <Users size={18} />, path: '/about' },
         { name: 'Courses', icon: <BookOpen size={18} />, path: '/courses' },
         { name: 'Services', icon: <Briefcase size={18} />, path: '/services' },
+        { name: 'Blogs', icon: <PenLine size={18} />, path: '/blogs' },
         { name: 'Contact Us', icon: <Phone size={18} />, path: '/contact' },
         
     ];

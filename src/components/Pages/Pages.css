@@ -1,0 +1,29 @@
+@keyframes blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(20px, -30px) scale(1.1); }
+    50% { transform: translate(-20px, 20px) scale(0.9); }
+    75% { transform: translate(20px, 30px) scale(1.05); }
+  }
+  
+  .animate-blob {
+    animation: blob 15s ease-in-out infinite;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+  
+  /* Define CSS variables for Tailwind colors */
+  :root {
+    --emerald-50): #ecfdf5;
+    --blue-50): #eff6ff;
+    --purple-50): #faf5ff;
+    --green-50): #f0fdf4;
+    --amber-50): #fffbeb;
+    --rose-50): #fff1f2;
+    --indigo-50): #eef2ff;
+  }
