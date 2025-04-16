@@ -4,6 +4,7 @@ import HomePage from './components/HomePage/HomePage';
 import AboutUs from './components/Pages/AboutUs';
 import Services from './components/Pages/Services';
 import EnergyAuditPage from './components/Pages/Services/EnergyAuditPage';
+import LoginSystem from './components/TopNavbar/LoginSystem'; // Import the new LoginSystem component
 import Footer from './components/Footer/Footer';
 
 function App() {
@@ -22,7 +23,7 @@ function App() {
             {/* Add more routes for other service pages */}
             <Route path="/blogs" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Blog Content</div>} />
             <Route path="/contact" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Contact Us Content</div>} />
-            <Route path="/login" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Login Content</div>} />
+            <Route path="/login" element={<LoginSystem />} /> {/* Updated to use the LoginSystem component */}
           </Routes>
         </div>
         <Footer/>
