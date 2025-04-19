@@ -52,10 +52,35 @@ const LoginSystem = () => {
   };
 
   // Form submission handlers
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    // Add your login logic here
-    console.log('Login submitted:', loginData);
+    
+    try {
+      const response = await fetch('http://localhost/EASCBackend/index.php?route=user_login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+        
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Store user data in app state or context
+        console.log('Login successful:', data.user);
+        
+        // Redirect to dashboard or home page
+        window.location.href = '/'; // or use React Router navigation
+      } else {
+        // Show error message
+        alert(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('An error occurred during login. Please try again.');
+    }
   };
 
   const handleForgotPasswordSubmit = (e) => {
@@ -83,7 +108,7 @@ const LoginSystem = () => {
 
   // Render the login form
   const renderLoginForm = () => (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-xl">
       <div className="text-center mb-8">
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
@@ -184,7 +209,7 @@ const LoginSystem = () => {
 
   // Render the forgot password form
   const renderForgotPasswordForm = () => (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-xl">
       <div className="text-center mb-8">
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
@@ -239,7 +264,7 @@ const LoginSystem = () => {
 
   // Render the signup form
   const renderSignupForm = () => (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-xl">
       <div className="text-center mb-8">
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
@@ -360,7 +385,7 @@ const LoginSystem = () => {
   // Render current form based on state
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
         {currentForm === 'login' && renderLoginForm()}
         {currentForm === 'forgotPassword' && renderForgotPasswordForm()}
         {currentForm === 'signup' && renderSignupForm()}

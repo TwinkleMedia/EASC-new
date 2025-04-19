@@ -21,7 +21,7 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost/EASCBackend/index.php', credentials);
+      const res = await axios.post('http://localhost/EASCBackend/index.php?route=login', credentials);
       console.log('Server response data:', res.data);
       if (res.data.success) {
         navigate('/dashboard');
