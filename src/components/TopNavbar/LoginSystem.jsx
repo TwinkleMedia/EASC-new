@@ -1,27 +1,32 @@
-import { useState } from 'react';
-import { LogIn, Mail, Lock, User, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { LogIn,Phone , Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import logo from "../../assets/EASC-logo.png";
 
 const LoginSystem = () => {
+
+  const navigate = useNavigate();
+
   // State to manage which form is currently shown
-  const [currentForm, setCurrentForm] = useState('login'); // 'login', 'forgotPassword', or 'signup'
-  
+  const [currentForm, setCurrentForm] = useState("login"); // 'login', 'forgotPassword', or 'signup'
+
   // Form data states
   const [loginData, setLoginData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
-  
+
   const [forgotPasswordData, setForgotPasswordData] = useState({
-    email: '',
+    email: "",
   });
-  
+
   const [signupData, setSignupData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    password: "",
+    contact:"",
+    confirmPassword: "",
   });
 
   // Handle login form inputs
@@ -42,70 +47,110 @@ const LoginSystem = () => {
     }));
   };
 
-  // Handle signup form inputs
-  const handleSignupChange = (e) => {
+  
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const response = await fetch("http://localhost/EASCBackend/index.php?route=user_login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginData),
+      });
+  
+      const result = await response.json();
+  
+      if (result.success) {
+        console.log("Login successful:", result.user);
+        // Optionally store user data in localStorage
+        localStorage.setItem("user", JSON.stringify(result.user));
+        // Redirect or show success message
+        alert("Login successful!");
+        navigate('/'); // if you're using React Router
+      } else {
+        alert(result.message || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred while logging in.");
+    }
+  };
+  
+  
+  const handleForgotPasswordSubmit = (e) => {
+    e.preventDefault();
+    // Add your forgot password logic here
+    console.log("Forgot password submitted:", forgotPasswordData);
+    // You could show a success message here
+    alert(
+      "If an account with this email exists, a password reset link has been sent."
+    );
+    setCurrentForm("login");
+  };
+
+   // Handle signup form inputs
+   const handleSignupChange = (e) => {
     const { name, value } = e.target;
     setSignupData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
-
-  // Form submission handlers
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
+ // Update the handleSignupSubmit function to connect with your PHP backend
+ const handleSignupSubmit = async (e) => {
+  e.preventDefault();
+  
+  // Validate form data
+  if (signupData.password !== signupData.confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+  
+  try {
+    // Call the PHP signup endpoint
+    const response = await fetch('http://localhost/EASCBackend/index.php?route=signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(signupData),
+    });
     
-    try {
-      const response = await fetch('http://localhost/EASCBackend/index.php?route=user_login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginData),
-        
-      });
-      
+    // Check if response is JSON
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
       const data = await response.json();
       
       if (data.success) {
-        // Store user data in app state or context
-        console.log('Login successful:', data.user);
-        
-        // Redirect to dashboard or home page
-        window.location.href = '/'; // or use React Router navigation
+        // Show success message
+        alert(data.message);
+        // Reset form
+        setSignupData({
+          name: '',
+          email: '',
+          contact: '',
+          password: '',
+          confirmPassword: ''
+        });
+        // Redirect to login
+        setCurrentForm("login");
       } else {
         // Show error message
-        alert(data.message || 'Login failed');
+        alert(data.message || 'Signup failed. Please try again.');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('An error occurred during login. Please try again.');
+    } else {
+      // Handle non-JSON response (likely an error)
+      const textResponse = await response.text();
+      console.error('Server returned non-JSON response:', textResponse);
+      alert('Server error occurred. Please check your PHP backend configuration.');
     }
-  };
-
-  const handleForgotPasswordSubmit = (e) => {
-    e.preventDefault();
-    // Add your forgot password logic here
-    console.log('Forgot password submitted:', forgotPasswordData);
-    // You could show a success message here
-    alert('If an account with this email exists, a password reset link has been sent.');
-    setCurrentForm('login');
-  };
-
-  const handleSignupSubmit = (e) => {
-    e.preventDefault();
-    // Add your signup logic here
-    console.log('Signup submitted:', signupData);
-    // Validate passwords match
-    if (signupData.password !== signupData.confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
-    // You could show a success message and redirect to login
-    alert('Account created successfully! Please login.');
-    setCurrentForm('login');
-  };
-
+  } catch (error) {
+    console.error('Error during signup:', error);
+    alert('An error occurred during signup. Please try again later.');
+  }
+};
   // Render the login form
   const renderLoginForm = () => (
     <div className="w-full max-w-xl">
@@ -116,10 +161,13 @@ const LoginSystem = () => {
         <h2 className="mt-4 text-3xl font-bold text-gray-800">Welcome back</h2>
         <p className="mt-2 text-gray-600">Please sign in to your account</p>
       </div>
-      
+
       <form onSubmit={handleLoginSubmit} className="space-y-6">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
             Email address
           </label>
           <div className="mt-1 relative">
@@ -140,7 +188,10 @@ const LoginSystem = () => {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700"
+          >
             Password
           </label>
           <div className="mt-1 relative">
@@ -168,14 +219,17 @@ const LoginSystem = () => {
               type="checkbox"
               className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
             />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+            <label
+              htmlFor="remember-me"
+              className="ml-2 block text-sm text-gray-700"
+            >
               Remember me
             </label>
           </div>
 
           <button
             type="button"
-            onClick={() => setCurrentForm('forgotPassword')}
+            onClick={() => setCurrentForm("forgotPassword")}
             className="text-sm font-medium text-emerald-600 hover:text-emerald-500"
           >
             Forgot your password?
@@ -195,9 +249,9 @@ const LoginSystem = () => {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
+          Don't have an account?{" "}
           <button
-            onClick={() => setCurrentForm('signup')}
+            onClick={() => setCurrentForm("signup")}
             className="font-medium text-emerald-600 hover:text-emerald-500"
           >
             Sign up now
@@ -214,13 +268,20 @@ const LoginSystem = () => {
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
         </div>
-        <h2 className="mt-4 text-3xl font-bold text-gray-800">Forgot Password</h2>
-        <p className="mt-2 text-gray-600">Enter your email to reset your password</p>
+        <h2 className="mt-4 text-3xl font-bold text-gray-800">
+          Forgot Password
+        </h2>
+        <p className="mt-2 text-gray-600">
+          Enter your email to reset your password
+        </p>
       </div>
-      
+
       <form onSubmit={handleForgotPasswordSubmit} className="space-y-6">
         <div>
-          <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="forgot-email"
+            className="block text-sm font-medium text-gray-700"
+          >
             Email address
           </label>
           <div className="mt-1 relative">
@@ -252,7 +313,7 @@ const LoginSystem = () => {
 
       <div className="mt-6 text-center">
         <button
-          onClick={() => setCurrentForm('login')}
+          onClick={() => setCurrentForm("login")}
           className="inline-flex items-center font-medium text-emerald-600 hover:text-emerald-500"
         >
           <ArrowLeft size={16} className="mr-1" />
@@ -269,13 +330,18 @@ const LoginSystem = () => {
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
         </div>
-        <h2 className="mt-4 text-3xl font-bold text-gray-800">Create Account</h2>
+        <h2 className="mt-4 text-3xl font-bold text-gray-800">
+          Create Account
+        </h2>
         <p className="mt-2 text-gray-600">Sign up to get started with EASC</p>
       </div>
-      
+
       <form onSubmit={handleSignupSubmit} className="space-y-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700"
+          >
             Full Name
           </label>
           <div className="mt-1 relative">
@@ -296,7 +362,10 @@ const LoginSystem = () => {
         </div>
 
         <div>
-          <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="signup-email"
+            className="block text-sm font-medium text-gray-700"
+          >
             Email address
           </label>
           <div className="mt-1 relative">
@@ -315,9 +384,35 @@ const LoginSystem = () => {
             />
           </div>
         </div>
+        <div>
+          <label
+            htmlFor="contact"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Contact Number
+          </label>
+          <div className="mt-1 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Phone size={18} className="text-gray-400" />
+            </div>
+            <input
+              id="contact"
+              name="contact"
+              type="tel"
+              required
+              value={signupData.contact}
+              onChange={handleSignupChange}
+              className="pl-10 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="Enter your contact number"
+            />
+          </div>
+        </div>
 
         <div>
-          <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="signup-password"
+            className="block text-sm font-medium text-gray-700"
+          >
             Password
           </label>
           <div className="mt-1 relative">
@@ -338,7 +433,10 @@ const LoginSystem = () => {
         </div>
 
         <div>
-          <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="confirm-password"
+            className="block text-sm font-medium text-gray-700"
+          >
             Confirm Password
           </label>
           <div className="mt-1 relative">
@@ -370,9 +468,9 @@ const LoginSystem = () => {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <button
-            onClick={() => setCurrentForm('login')}
+            onClick={() => setCurrentForm("login")}
             className="font-medium text-emerald-600 hover:text-emerald-500"
           >
             Sign in
@@ -385,10 +483,10 @@ const LoginSystem = () => {
   // Render current form based on state
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
-        {currentForm === 'login' && renderLoginForm()}
-        {currentForm === 'forgotPassword' && renderForgotPasswordForm()}
-        {currentForm === 'signup' && renderSignupForm()}
+      <div className="bg-white p-8 rounded-lg shadow-lg">
+        {currentForm === "login" && renderLoginForm()}
+        {currentForm === "forgotPassword" && renderForgotPasswordForm()}
+        {currentForm === "signup" && renderSignupForm()}
       </div>
     </div>
   );

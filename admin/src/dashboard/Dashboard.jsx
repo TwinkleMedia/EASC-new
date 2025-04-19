@@ -1,12 +1,42 @@
 // Dashboard.jsx
-import SideNav from './sidnavbar/sidenavbar';
+import { useState, useEffect } from 'react';
 import { Bell, Mail, Search, User } from 'lucide-react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import SideNav from './sidnavbar/sidenavbar';
 
 const Dashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [activeView, setActiveView] = useState(getViewFromPath(location.pathname));
+
+  // Update active view when route changes
+  useEffect(() => {
+    setActiveView(getViewFromPath(location.pathname));
+  }, [location.pathname]);
+
+  // Extract the view name from the path
+  function getViewFromPath(path) {
+    const parts = path.split('/');
+    // If we're at the root dashboard path
+    if (parts.length <= 2 || parts[2] === '') {
+      return 'dashboard';
+    }
+    return parts[2]; // Return the last part of the path
+  }
+
+  const handleMenuSelect = (viewName) => {
+    if (viewName === 'dashboard') {
+      navigate('/dashboard');
+    } else {
+      navigate(`/dashboard/${viewName}`);
+    }
+    setActiveView(viewName);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Import the SideNav component */}
-      <SideNav />
+      <SideNav onMenuSelect={handleMenuSelect} activeView={activeView} />
       
       {/* Main content area */}
       <div className="flex-1 lg:ml-64"> {/* Adjust margin to match expanded sidebar width */}
@@ -38,24 +68,9 @@ const Dashboard = () => {
           </div>
         </header>
         
-        {/* Dashboard content */}
+        {/* Dynamic content area - will be filled by the Outlet */}
         <main className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-            <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
-          </div>
-          
-          {/* Stats Cards */}
-          
-          
-          {/* Main content area */}
-         
-            
-            {/* Right column - narrower content */}
-            
-              
-              
-         
+          <Outlet />
         </main>
       </div>
     </div>

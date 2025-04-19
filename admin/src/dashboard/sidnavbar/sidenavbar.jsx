@@ -1,8 +1,9 @@
 // SideNav.jsx
 import { useState } from 'react';
-import { Menu, X, Home, User, Settings, BarChart2, FileText, Calendar, HelpCircle, LogOut } from 'lucide-react';
+import { Menu, X, Home, Book, Calendar, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const sidenavbar = () => {
+const sidenavbar = ({ onMenuSelect, activeView }) => {
   const [expanded, setExpanded] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -10,8 +11,8 @@ const sidenavbar = () => {
     setExpanded(!expanded);
   };
   
-//   **************************LogOut*************************************************************
-const handleLogout = async () => {
+  // LogOut functionality
+  const handleLogout = async () => {
     try {
       // Assuming your API endpoint is on the same domain
       const response = await fetch('/logout', {
@@ -25,7 +26,7 @@ const handleLogout = async () => {
       
       if (data.success) {
         // Redirect to login page after successful logout
-        window.location.href = '/login'; // Adjust the path as needed
+        window.location.href = '/'; // Go to login page
       } else {
         console.error('Logout failed:', data.message);
       }
@@ -33,22 +34,41 @@ const handleLogout = async () => {
       console.error('Error during logout:', error);
     }
   };
-//   **********************************************************************************************
- 
-
 
   const toggleMobileMenu = () => {
     setIsMobileOpen(!isMobileOpen);
   };
 
+  const handleMenuItemClick = (path) => {
+    // If on mobile, close the menu
+    if (window.innerWidth < 1024) {
+      setIsMobileOpen(false);
+    }
+    
+    // Pass the selected view to the parent component
+    onMenuSelect(path);
+  };
+
+  // Menu items with proper paths
   const menuItems = [
-    { icon: <Home size={20} />, label: 'Dashboard', active: true },
-    { icon: <BarChart2 size={20} />, label: 'Analytics' },
-    { icon: <Calendar size={20} />, label: 'Calendar' },
-    { icon: <FileText size={20} />, label: 'Documents' },
-    { icon: <User size={20} />, label: 'Profile' },
-    { icon: <Settings size={20} />, label: 'Settings' },
-    { icon: <HelpCircle size={20} />, label: 'Help' },
+    { 
+      icon: <Home size={20} />, 
+      label: 'Dashboard', 
+      path: 'dashboard',
+      active: activeView === 'dashboard'
+    },
+    { 
+      icon: <Book size={20} />, 
+      label: 'Upload Courses', 
+      path: 'upload-courses',
+      active: activeView === 'upload-courses'
+    },
+    { 
+      icon: <Calendar size={20} />, 
+      label: 'Create Coupon Code', 
+      path: 'create-coupon-code',
+      active: activeView === 'create-coupon-code'
+    },
   ];
 
   return (
@@ -82,7 +102,7 @@ const handleLogout = async () => {
               <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center">
                
               </div>
-              <h1 className="ml-3 font-bold text-green-800 text-xl">EASC ADMIM</h1>
+              <h1 className="ml-3 font-bold text-green-800 text-xl">EASC ADMIN</h1>
             </div>
           )}
           <button 
@@ -98,9 +118,9 @@ const handleLogout = async () => {
           <ul className="space-y-2">
             {menuItems.map((item, index) => (
               <li key={index}>
-                <a 
-                  href="#" 
-                  className={`flex items-center p-3 rounded-lg transition-colors
+                <button 
+                  onClick={() => handleMenuItemClick(item.path)}
+                  className={`flex items-center p-3 rounded-lg transition-colors w-full text-left
                     ${item.active 
                       ? 'bg-green-600 text-white hover:bg-green-700' 
                       : 'text-gray-700 hover:bg-green-100'
@@ -109,7 +129,7 @@ const handleLogout = async () => {
                 >
                   <span className="flex-shrink-0">{item.icon}</span>
                   {expanded && <span className="ml-3">{item.label}</span>}
-                </a>
+                </button>
               </li>
             ))}
           </ul>
@@ -117,7 +137,7 @@ const handleLogout = async () => {
 
         {/* Footer */}
         <div className="p-4 border-t border-green-100">
-        <button 
+          <button 
             onClick={handleLogout}
             className={`flex items-center w-full p-3 rounded-lg text-red-500 hover:bg-red-50 transition-colors
               ${!expanded && 'justify-center'}`}
@@ -131,4 +151,4 @@ const handleLogout = async () => {
   );
 };
 
-export default sidenavbar ;
+export default sidenavbar;
