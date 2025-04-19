@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, FilePlus, Check, AlertCircle } from 'lucide-react';
+import { Upload, FilePlus, Check, AlertCircle, Image } from 'lucide-react';
 
 const UploadCourses = () => {
   const [formData, setFormData] = useState({
@@ -10,10 +10,25 @@ const UploadCourses = () => {
     telegramLink: '', // New field for Telegram link
     price: '',
     discountedPrice: '',
-    pdfFile: null
+    displayImage: null,
+    pdfFile: null,
+    masterNotes: null,
+    smartShortNotes: null,
+    oldPapers: null,
+    questionBank: null,
+    textBook: null
   });
   
-  const [fileSelected, setFileSelected] = useState(false);
+  const [fileSelected, setFileSelected] = useState({
+    displayImage: false,
+    pdfFile: false,
+    masterNotes: false,
+    smartShortNotes: false,
+    oldPapers: false,
+    questionBank: false,
+    textBook: false
+  });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -27,12 +42,16 @@ const UploadCourses = () => {
   };
   
   const handleFileChange = (e) => {
-    if (e.target.files[0]) {
+    const { name, files } = e.target;
+    if (files[0]) {
       setFormData({
         ...formData,
-        pdfFile: e.target.files[0]
+        [name]: files[0]
       });
-      setFileSelected(true);
+      setFileSelected({
+        ...fileSelected,
+        [name]: true
+      });
     }
   };
   
@@ -52,8 +71,33 @@ const UploadCourses = () => {
       submitData.append('price', formData.price);
       submitData.append('discountedPrice', formData.discountedPrice);
       
+      // Append all files to the form data
+      if (formData.displayImage) {
+        submitData.append('displayImage', formData.displayImage);
+      }
+      
       if (formData.pdfFile) {
         submitData.append('courseFile', formData.pdfFile);
+      }
+      
+      if (formData.masterNotes) {
+        submitData.append('masterNotes', formData.masterNotes);
+      }
+      
+      if (formData.smartShortNotes) {
+        submitData.append('smartShortNotes', formData.smartShortNotes);
+      }
+      
+      if (formData.oldPapers) {
+        submitData.append('oldPapers', formData.oldPapers);
+      }
+      
+      if (formData.questionBank) {
+        submitData.append('questionBank', formData.questionBank);
+      }
+      
+      if (formData.textBook) {
+        submitData.append('textBook', formData.textBook);
       }
       
       // Example API call - replace with your actual endpoint
@@ -86,9 +130,25 @@ const UploadCourses = () => {
           telegramLink: '',
           price: '',
           discountedPrice: '',
-          pdfFile: null
+          displayImage: null,
+          pdfFile: null,
+          masterNotes: null,
+          smartShortNotes: null,
+          oldPapers: null,
+          questionBank: null,
+          textBook: null
         });
-        setFileSelected(false);
+        
+        setFileSelected({
+          displayImage: false,
+          pdfFile: false,
+          masterNotes: false,
+          smartShortNotes: false,
+          oldPapers: false,
+          questionBank: false,
+          textBook: false
+        });
+        
         setSubmitSuccess(true);
         
         // Reset success message after 3 seconds
@@ -105,6 +165,43 @@ const UploadCourses = () => {
       setIsSubmitting(false);
     }
   };
+  
+  // Reusable file upload component
+  const FileUploadField = ({ id, name, label, fileSelected, file }) => (
+    <div className="mb-4">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50">
+        <input
+          type="file"
+          id={id}
+          name={name}
+          onChange={handleFileChange}
+          accept=".pdf"
+          className="hidden"
+        />
+        <label 
+          htmlFor={id} 
+          className="cursor-pointer flex flex-col items-center justify-center w-full"
+        >
+          {fileSelected ? (
+            <>
+              <FilePlus size={32} className="text-green-500 mb-1" />
+              <span className="text-green-600 font-medium text-sm">{file?.name}</span>
+              <span className="text-gray-500 text-xs mt-1">Click to replace file</span>
+            </>
+          ) : (
+            <>
+              <Upload size={32} className="text-gray-400 mb-1" />
+              <span className="text-gray-600 font-medium text-sm">Upload {label}</span>
+              <span className="text-gray-500 text-xs mt-1">PDF files only</span>
+            </>
+          )}
+        </label>
+      </div>
+    </div>
+  );
   
   return (
     <div className="p-6">
@@ -246,37 +343,89 @@ const UploadCourses = () => {
             </div>
           </div>
           
-          {/* PDF File Upload */}
-          <div className="mb-6">
-            <label htmlFor="courseFile" className="block text-sm font-medium text-gray-700 mb-1">
-              Course PDF
+          {/* Course Display Image Upload */}
+          <div className="mb-4">
+            <label htmlFor="displayImage" className="block text-sm font-medium text-gray-700 mb-1">
+              Course Display Image
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50">
               <input
                 type="file"
-                id="courseFile"
+                id="displayImage"
+                name="displayImage"
                 onChange={handleFileChange}
-                accept=".pdf"
+                accept="image/*"
                 className="hidden"
               />
               <label 
-                htmlFor="courseFile" 
+                htmlFor="displayImage" 
                 className="cursor-pointer flex flex-col items-center justify-center w-full"
               >
-                {fileSelected ? (
+                {fileSelected.displayImage ? (
                   <>
-                    <FilePlus size={40} className="text-green-500 mb-2" />
-                    <span className="text-green-600 font-medium">{formData.pdfFile?.name}</span>
-                    <span className="text-gray-500 text-sm mt-1">Click to replace file</span>
+                    <Image size={32} className="text-green-500 mb-1" />
+                    <span className="text-green-600 font-medium text-sm">{formData.displayImage?.name}</span>
+                    <span className="text-gray-500 text-xs mt-1">Click to replace image</span>
                   </>
                 ) : (
                   <>
-                    <Upload size={40} className="text-gray-400 mb-2" />
-                    <span className="text-gray-600 font-medium">Click to upload PDF</span>
-                    <span className="text-gray-500 text-sm mt-1">PDF files only</span>
+                    <Image size={32} className="text-gray-400 mb-1" />
+                    <span className="text-gray-600 font-medium text-sm">Upload Course Image</span>
+                    <span className="text-gray-500 text-xs mt-1">JPG, PNG, or GIF</span>
                   </>
                 )}
               </label>
+            </div>
+          </div>
+          
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">Course Materials</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+              {/* Master Notes PDF */}
+              <FileUploadField 
+                id="masterNotes" 
+                name="masterNotes" 
+                label="Master Notes" 
+                fileSelected={fileSelected.masterNotes} 
+                file={formData.masterNotes} 
+              />
+              
+              {/* Smart Short Notes PDF */}
+              <FileUploadField 
+                id="smartShortNotes" 
+                name="smartShortNotes" 
+                label="Smart Short Notes" 
+                fileSelected={fileSelected.smartShortNotes} 
+                file={formData.smartShortNotes} 
+              />
+              
+              {/* Old Papers PDF */}
+              <FileUploadField 
+                id="oldPapers" 
+                name="oldPapers" 
+                label="Old Papers" 
+                fileSelected={fileSelected.oldPapers} 
+                file={formData.oldPapers} 
+              />
+              
+              {/* Question Bank PDF */}
+              <FileUploadField 
+                id="questionBank" 
+                name="questionBank" 
+                label="Question Bank" 
+                fileSelected={fileSelected.questionBank} 
+                file={formData.questionBank} 
+              />
+              
+              {/* Text Book PDF */}
+              <FileUploadField 
+                id="textBook" 
+                name="textBook" 
+                label="Text Book" 
+                fileSelected={fileSelected.textBook} 
+                file={formData.textBook} 
+              />
             </div>
           </div>
           
