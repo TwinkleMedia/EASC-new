@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Users, Home, Phone, LogIn,Briefcase,PenLine } from 'lucide-react';
+import { Menu, X, BookOpen, Users, Home, Phone, LogIn,Briefcase,PenLine} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logo from "../../assets/EASC-logo.png";
 import Services from '../Pages/Services';
@@ -35,6 +35,7 @@ const TopNavbar = () => {
         { name: 'Services', icon: <Briefcase size={18} />, path: '/services' },
         { name: 'Blogs', icon: <PenLine size={18} />, path: '/blogs' },
         { name: 'Contact Us', icon: <Phone size={18} />, path: '/contact' },
+        // { name: 'Cart', icon: <ShoppingCart size={18} />, path: '/contact' },
         
     ];
 

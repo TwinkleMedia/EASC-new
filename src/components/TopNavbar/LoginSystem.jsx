@@ -1,9 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LogIn,Phone , Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/EASC-logo.png";
 
 const LoginSystem = () => {
+
+  const navigate = useNavigate();
+
   // State to manage which form is currently shown
   const [currentForm, setCurrentForm] = useState("login"); // 'login', 'forgotPassword', or 'signup'
 
@@ -48,7 +52,7 @@ const LoginSystem = () => {
     e.preventDefault();
   
     try {
-      const response = await fetch("http://localhost/EASCBackend/index.php?route=userlogin", {
+      const response = await fetch("http://localhost/EASCBackend/index.php?route=user_login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +68,7 @@ const LoginSystem = () => {
         localStorage.setItem("user", JSON.stringify(result.user));
         // Redirect or show success message
         alert("Login successful!");
-        // navigate('/dashboard'); // if you're using React Router
+        navigate('/'); // if you're using React Router
       } else {
         alert(result.message || "Login failed");
       }
@@ -149,7 +153,7 @@ const LoginSystem = () => {
 };
   // Render the login form
   const renderLoginForm = () => (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-xl">
       <div className="text-center mb-8">
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
@@ -259,7 +263,7 @@ const LoginSystem = () => {
 
   // Render the forgot password form
   const renderForgotPasswordForm = () => (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-xl">
       <div className="text-center mb-8">
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
@@ -321,7 +325,7 @@ const LoginSystem = () => {
 
   // Render the signup form
   const renderSignupForm = () => (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-xl">
       <div className="text-center mb-8">
         <div className="flex justify-center">
           <img src={logo} alt="EASC Logo" className="h-16 w-16" />
