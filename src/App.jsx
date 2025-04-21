@@ -6,6 +6,7 @@ import Services from './components/Pages/Services';
 import EnergyAuditPage from './components/Pages/Services/EnergyAuditPage';
 import ContactUs from './components/Pages/ContactUs';
 import LoginSystem from './components/TopNavbar/LoginSystem'; // Import the new LoginSystem component
+import ResetPassword from './components/TopNavbar/ResetPassword';
 import Footer from './components/Footer/Footer';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/blogs" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Blog Content</div>} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/login" element={<LoginSystem />} /> {/* Updated to use the LoginSystem component */}
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </div>
         <Footer/>
