@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Users, Home, Phone, LogIn,Briefcase,PenLine} from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, X, BookOpen, Users, Home, Phone, LogIn, Briefcase, PenLine, User, ShoppingCart, LogOut, Book } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from "../../assets/EASC-logo.png";
-import Services from '../Pages/Services';
 
 const TopNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+
+    // Check authentication status on component mount
+    useEffect(() => {
+        // Check if user data exists in localStorage
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            setUser(JSON.parse(userData));
+        }
+    }, []);
 
     // Handle scroll effect for navbar
     useEffect(() => {
@@ -27,6 +38,25 @@ const TopNavbar = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
+    // Toggle user dropdown menu
+    const toggleUserMenu = () => {
+        setIsUserMenuOpen(!isUserMenuOpen);
+    };
+
+    // Handle logout
+    const handleLogout = () => {
+        // Remove user data from localStorage
+        localStorage.removeItem('user');
+        // Reset user state
+        setUser(null);
+        // Close dropdown menu
+        setIsUserMenuOpen(false);
+        // Optional: Redirect to home or login page
+        navigate('/');
+        // Show feedback to user
+        alert('You have successfully logged out.');
+    };
+
     // Navigation items with icons
     const navItems = [
         { name: 'Home', icon: <Home size={18} />, path: '/' },
@@ -35,15 +65,13 @@ const TopNavbar = () => {
         { name: 'Services', icon: <Briefcase size={18} />, path: '/services' },
         { name: 'Blogs', icon: <PenLine size={18} />, path: '/blogs' },
         { name: 'Contact Us', icon: <Phone size={18} />, path: '/contact' },
-        // { name: 'Cart', icon: <ShoppingCart size={18} />, path: '/contact' },
-        
     ];
 
     return (
         <nav
             className={`fixed w-full z-50 transition-all duration-300 ${scrolled
-                    ? 'bg-white shadow-md py-2'
-                    : 'bg-white/90 backdrop-blur-sm py-4'
+                ? 'bg-white shadow-md py-2'
+                : 'bg-white/90 backdrop-blur-sm py-4'
                 }`}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -51,8 +79,7 @@ const TopNavbar = () => {
                     {/* Logo */}
                     <div className="flex items-center">
                         <Link to="/" className="flex items-center">
-                            <div className="h-10 w-10  rounded-md flex items-center justify-center overflow-hidden">
-                                {/* Replace the EA text with an image */}
+                            <div className="h-10 w-10 rounded-md flex items-center justify-center overflow-hidden">
                                 <img src={logo} alt="EASC Logo" className="logo" />
                             </div>
                             <span className="ml-2 text-xl font-bold text-gray-800 hidden sm:block">
@@ -76,13 +103,55 @@ const TopNavbar = () => {
                                 {item.name}
                             </Link>
                         ))}
-                        <Link
-                            to="/login"
-                            className="ml-2 inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
-                        >
-                            <LogIn size={18} className="mr-1" />
-                            Login
-                        </Link>
+                        
+                        {user ? (
+                            <div className="relative">
+                                <button
+                                    onClick={toggleUserMenu}
+                                    className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                                >
+                                    <User size={20} className="text-emerald-600" />
+                                    <span className="ml-2">{user.name?.split(' ')[0] || 'User'}</span>
+                                </button>
+                                
+                                {/* User Dropdown Menu */}
+                                {isUserMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                                        <Link
+                                            to="/my-cart"
+                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            onClick={() => setIsUserMenuOpen(false)}
+                                        >
+                                            <ShoppingCart size={16} className="mr-2" />
+                                            My Cart
+                                        </Link>
+                                        <Link
+                                            to="/my-books"
+                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            onClick={() => setIsUserMenuOpen(false)}
+                                        >
+                                            <Book size={16} className="mr-2" />
+                                            My Books
+                                        </Link>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                        >
+                                            <LogOut size={16} className="mr-2" />
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <Link
+                                to="/login"
+                                className="ml-2 inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
+                            >
+                                <LogIn size={18} className="mr-1" />
+                                Login
+                            </Link>
+                        )}
                     </div>
 
                     {/* Mobile menu button */}
@@ -112,14 +181,47 @@ const TopNavbar = () => {
                                 {item.name}
                             </Link>
                         ))}
-                        <Link
-                            to="/login"
-                            className="flex items-center justify-center w-full mt-2 px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-medium text-white hover:bg-emerald-700"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            <LogIn size={18} className="mr-1" />
-                            Login
-                        </Link>
+                        
+                        {user ? (
+                            <>
+                                <div className="flex items-center px-3 py-2 text-gray-700">
+                                    <User size={18} className="mr-2 text-emerald-600" />
+                                    <span className="font-medium">{user.name || 'User'}</span>
+                                </div>
+                                <Link
+                                    to="/my-cart"
+                                    className="flex items-center px-3 py-2 text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded-md"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <ShoppingCart size={18} className="mr-2" />
+                                    My Cart
+                                </Link>
+                                <Link
+                                    to="/my-books"
+                                    className="flex items-center px-3 py-2 text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded-md"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <Book size={18} className="mr-2" />
+                                    My Books
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center w-full text-left px-3 py-2 text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded-md"
+                                >
+                                    <LogOut size={18} className="mr-2" />
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <Link
+                                to="/login"
+                                className="flex items-center justify-center w-full mt-2 px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-medium text-white hover:bg-emerald-700"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                <LogIn size={18} className="mr-1" />
+                                Login
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}
