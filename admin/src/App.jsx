@@ -5,7 +5,7 @@ import Dashboard from './dashboard/dashboard';
 import UploadCourses from './dashboard/page/UploadCourses';
 import CouponForm from './dashboard/page/CouponForm';
 import DashboardOverview from './dashboard/DashboardOverview';
-
+import Listofcourses from './dashboard/page/Listofcourses';
 function App() {
   return (
     <Router>
@@ -16,6 +16,7 @@ function App() {
           <Route index element={<DashboardOverview />} />
           <Route path="upload-courses" element={<UploadCourses />} />
           <Route path="create-coupon-code" element={<CouponForm />} />
+          <Route path="List-of-courses" element={< Listofcourses />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
         {/* Redirect any other routes to dashboard */}
