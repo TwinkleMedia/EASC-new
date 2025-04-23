@@ -76,7 +76,7 @@ const TopNavbar = () => {
     // Course dropdown items
     const courseItems = [
         { name: 'CEMExamsPage', path: '/courses/cem-exams' },
-        { name: 'CEA Exam', path: '/courses/cea-exams' },
+        { name: 'CEAExamsPage', path: '/courses/cea-exams' },
     ];
 
     return (

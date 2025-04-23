@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 
-export default function CouponForm() {
+export default function CouponForm({ onCouponCreated }) {
   const [coupon, setCoupon] = useState({
     code: '',
     discountPercentage: 0,
@@ -32,8 +33,8 @@ export default function CouponForm() {
     e.preventDefault();
     
     try {
-      // Make sure this URL matches your PHP server setup
-      const response = await fetch('http://localhost/EASCBackend/index.php?route=coupons', {
+      // Use the direct PHP file endpoint
+      const response = await fetch('http://localhost/EASCBackend/SaveCoupon.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,16 +42,16 @@ export default function CouponForm() {
         body: JSON.stringify(coupon)
       });
       
-      const result = await response.json();
-      
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create coupon');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create coupon');
       }
       
+      const result = await response.json();
       console.log('Coupon created:', result);
       alert('Coupon created successfully!');
       
-      // Optional: Reset the form
+      // Reset the form
       setCoupon({
         code: '',
         discountPercentage: 0,
@@ -59,11 +60,17 @@ export default function CouponForm() {
         isActive: true
       });
       
+      // Notify parent component
+      if (onCouponCreated) {
+        onCouponCreated();
+      }
+      
     } catch (error) {
       console.error('Error creating coupon:', error);
       alert(`Error: ${error.message}`);
     }
   };
+  
   return (
     <div className="w-full max-w-2xl mx-auto p-4 md:p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-green-800">Create Coupon Code</h2>
@@ -82,6 +89,7 @@ export default function CouponForm() {
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             placeholder="e.g. SUMMER20"
+            required
           />
         </div>
 
@@ -100,14 +108,13 @@ export default function CouponForm() {
               value={coupon.discountPercentage}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              required
             />
             <div className="absolute inset-y-0 right-0 flex items-center mr-3 text-gray-500">
               %
             </div>
           </div>
         </div>
-
-       
 
         {/* Responsive Grid for Date Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,6 +130,7 @@ export default function CouponForm() {
               value={coupon.startDate}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              required
             />
             <p className="text-xs text-gray-500">When the coupon becomes active</p>
           </div>
@@ -139,12 +147,13 @@ export default function CouponForm() {
               value={coupon.endDate}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              required
             />
             <p className="text-xs text-gray-500">When the coupon expires</p>
           </div>
         </div>
 
-        {/* Status */}
+        {/* Status Toggle */}
         <div className="space-y-1 md:space-y-2">
           <label className="block text-sm font-medium text-gray-700">Status</label>
           <div className="flex items-center space-x-3">
@@ -177,8 +186,9 @@ export default function CouponForm() {
           <p className="text-xs text-gray-500">Toggle to activate or deactivate the coupon</p>
         </div>
 
-        {/* Alternative Status as Dropdown */}
-        <div className="space-y-1 md:space-y-2">
+
+    {/* Alternative Status as Dropdown */}
+    <div className="space-y-1 md:space-y-2">
           <label htmlFor="status" className="block text-sm font-medium text-gray-700">
             Status (Dropdown Alternative)
           </label>

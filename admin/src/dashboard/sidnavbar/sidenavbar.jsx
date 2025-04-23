@@ -75,6 +75,12 @@ const sidenavbar = ({ onMenuSelect, activeView }) => {
       path: 'List-of-courses',
       active: activeView === 'List-of-courses'
     },
+    { 
+      icon: <Calendar size={20} />, 
+      label: 'list of coupon', 
+      path: 'List-of-coupon',
+      active: activeView === 'List-of-coupon'
+    },
   ];
 
   return (
