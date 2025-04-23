@@ -38,34 +38,52 @@ const Listofcourses = () => {
   }, []);
 
   const handleDeleteCourse = async (courseId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this course? This action cannot be undone."
-      )
-    ) {
-      try {
-        // Create FormData object
-        const formData = new FormData();
-        formData.append("id", courseId);
+  if (window.confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+    try {
+      // Show some loading indicator if you have one
+      setLoading(true);
+      
+      const formData = new FormData();
+      formData.append("id", courseId);
 
-        const response = await axios.post(
-          "http://localhost/EASCBackend/index.php?route=delectcourses",
-          formData
-        );
+      console.log("Sending delete request for course ID:", courseId);
+      
+      const response = await axios.post(
+        "http://localhost/EASCBackend/index.php?route=delectcourses",
+        formData
+      );
+      
+      console.log("Delete response:", response);
 
-        if (response.data.status === "success") {
-          setCourses(courses.filter((course) => course.id !== courseId));
-          alert("Course deleted successfully");
-        } else {
-          alert("Error: " + response.data.message);
-        }
-      } catch (err) {
-        console.error("Error deleting course:", err);
+      if (response.data && response.data.status === "success") {
+        // Update the local state to remove the deleted course
+        setCourses(courses.filter((course) => course.id !== courseId));
+        
+        // Show a more detailed success message
+        const deletedFiles = response.data.cloudinary_files_deleted ? 
+                            response.data.cloudinary_files_deleted.length : 0;
+        const message = `Course deleted successfully. ${deletedFiles} files removed from Cloudinary.`;
+        alert(message);
+      } else {
+        const errorMessage = response.data && response.data.message 
+          ? response.data.message 
+          : "Unknown error occurred";
+        alert("Error: " + errorMessage);
+      }
+    } catch (err) {
+      console.error("Error deleting course:", err);
+      
+      if (err.response && err.response.data) {
+        alert("Error: " + (err.response.data.message || "Unknown server error"));
+      } else {
         alert("Failed to delete course. Please try again later.");
       }
+    } finally {
+      // Hide loading indicator
+      setLoading(false);
     }
-  };
-
+  }
+};
   const handleViewCourse = (course) => {
     setSelectedCourse(course);
     setShowModal(true);
