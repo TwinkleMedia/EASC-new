@@ -3,6 +3,7 @@ import TopNavbar from './components/TopNavbar/TopNavbar';
 import HomePage from './components/HomePage/HomePage';
 import AboutUs from './components/Pages/AboutUs';
 import Services from './components/Pages/Services';
+import CEMExamsPage from './components/Pages/Courses/CEMExamsPage';
 import EnergyAuditPage from './components/Pages/Services/EnergyAuditPage';
 import ContactUs from './components/Pages/ContactUs';
 import LoginSystem from './components/TopNavbar/LoginSystem'; // Import the new LoginSystem component
@@ -19,7 +20,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage/>} />
             <Route path="/about" element={<AboutUs />} />
-            <Route path="/courses" element={<div className="pt-20 max-w-7xl mx-auto py-12 px-4">Courses Content</div>} />
+            <Route path="/courses/cem/:id" element={<CEMExamsPage />} />
+            <Route path="/courses/cem-exams" element={<CEMExamsPage />} />
             <Route path="/services" element={<Services />} />
             <Route path="/services/energy-audit" element={<EnergyAuditPage />} />
             {/* Add more routes for other service pages */}

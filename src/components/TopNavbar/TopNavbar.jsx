@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, BookOpen, Users, Home, Phone, LogIn, Briefcase, PenLine, User, ShoppingCart, LogOut, Book } from 'lucide-react';
+import { Menu, X, BookOpen, Users, Home, Phone, LogIn, Briefcase, PenLine, User, ShoppingCart, LogOut, Book, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from "../../assets/EASC-logo.png";
 
@@ -7,6 +7,7 @@ const TopNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isCoursesMenuOpen, setIsCoursesMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
@@ -43,6 +44,11 @@ const TopNavbar = () => {
         setIsUserMenuOpen(!isUserMenuOpen);
     };
 
+    // Toggle courses dropdown menu
+    const toggleCoursesMenu = () => {
+        setIsCoursesMenuOpen(!isCoursesMenuOpen);
+    };
+
     // Handle logout
     const handleLogout = () => {
         // Remove user data from localStorage
@@ -57,14 +63,20 @@ const TopNavbar = () => {
         alert('You have successfully logged out.');
     };
 
-    // Navigation items with icons
+    // Navigation items with icons - note course is NOT included here as it's handled separately
     const navItems = [
         { name: 'Home', icon: <Home size={18} />, path: '/' },
         { name: 'About Us', icon: <Users size={18} />, path: '/about' },
-        { name: 'Courses', icon: <BookOpen size={18} />, path: '/courses' },
+        // Courses dropdown is inserted in the JSX between About Us and Services
         { name: 'Services', icon: <Briefcase size={18} />, path: '/services' },
         { name: 'Blogs', icon: <PenLine size={18} />, path: '/blogs' },
         { name: 'Contact Us', icon: <Phone size={18} />, path: '/contact' },
+    ];
+
+    // Course dropdown items
+    const courseItems = [
+        { name: 'CEMExamsPage', path: '/courses/cem-exams' },
+        { name: 'CEA Exam', path: '/courses/cea-exams' },
     ];
 
     return (
@@ -93,16 +105,75 @@ const TopNavbar = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex md:items-center md:space-x-6">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                to={item.path}
+                        {/* Home and About Us */}
+                        <Link
+                            to="/"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                        >
+                            <Home size={18} className="mr-1" />
+                            Home
+                        </Link>
+                        
+                        <Link
+                            to="/about"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                        >
+                            <Users size={18} className="mr-1" />
+                            About Us
+                        </Link>
+
+                        {/* Courses dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={toggleCoursesMenu}
                                 className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
                             >
-                                <span className="mr-1">{item.icon}</span>
-                                {item.name}
-                            </Link>
-                        ))}
+                                <BookOpen size={18} className="mr-1" />
+                                Courses
+                                <ChevronDown size={16} className="ml-1" />
+                            </button>
+
+                            {/* Courses Dropdown Menu */}
+                            {isCoursesMenuOpen && (
+                                <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                                    {courseItems.map((item) => (
+                                        <Link
+                                            key={item.name}
+                                            to={item.path}
+                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-emerald-600"
+                                            onClick={() => setIsCoursesMenuOpen(false)}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Services, Blogs, Contact Us */}
+                        <Link
+                            to="/services"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                        >
+                            <Briefcase size={18} className="mr-1" />
+                            Services
+                        </Link>
+                        
+                        <Link
+                            to="/blogs"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                        >
+                            <PenLine size={18} className="mr-1" />
+                            Blogs
+                        </Link>
+                        
+                        <Link
+                            to="/contact"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
+                        >
+                            <Phone size={18} className="mr-1" />
+                            Contact Us
+                        </Link>
                         
                         {user ? (
                             <div className="relative">
@@ -170,17 +241,84 @@ const TopNavbar = () => {
             {isMenuOpen && (
                 <div className="md:hidden">
                     <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg rounded-b-lg">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                to={item.path}
-                                className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
-                                onClick={() => setIsMenuOpen(false)}
+                        {/* Home */}
+                        <Link
+                            to="/"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <Home size={18} className="mr-2" />
+                            Home
+                        </Link>
+                        
+                        {/* About Us */}
+                        <Link
+                            to="/about"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <Users size={18} className="mr-2" />
+                            About Us
+                        </Link>
+                        
+                        {/* Courses dropdown for mobile */}
+                        <div>
+                            <button
+                                className="flex items-center justify-between w-full text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
+                                onClick={() => setIsCoursesMenuOpen(!isCoursesMenuOpen)}
                             >
-                                <span className="mr-2">{item.icon}</span>
-                                {item.name}
-                            </Link>
-                        ))}
+                                <div className="flex items-center">
+                                    <BookOpen size={18} className="mr-2" />
+                                    Courses
+                                </div>
+                                <ChevronDown size={18} className={`transition-transform ${isCoursesMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            
+                            {isCoursesMenuOpen && (
+                                <div className="pl-8 mt-1 space-y-1">
+                                    {courseItems.map((item) => (
+                                        <Link
+                                            key={item.name}
+                                            to={item.path}
+                                            className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Services */}
+                        <Link
+                            to="/services"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <Briefcase size={18} className="mr-2" />
+                            Services
+                        </Link>
+                        
+                        {/* Blogs */}
+                        <Link
+                            to="/blogs"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <PenLine size={18} className="mr-2" />
+                            Blogs
+                        </Link>
+                        
+                        {/* Contact Us */}
+                        <Link
+                            to="/contact"
+                            className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <Phone size={18} className="mr-2" />
+                            Contact Us
+                        </Link>
                         
                         {user ? (
                             <>
