@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import EditCourseModal from "./EditCourseModal";
 
 const Listofcourses = () => {
   const [courses, setCourses] = useState([]);
@@ -7,6 +8,8 @@ const Listofcourses = () => {
   const [error, setError] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
 
   useEffect(() => {
     // Fetch courses data from the API
@@ -37,53 +40,74 @@ const Listofcourses = () => {
     fetchCourses();
   }, []);
 
+  const handleEditCourse = (course) => {
+    setEditingCourse({...course});
+    setShowEditModal(true);
+  };
+  const handleEditSuccess = (updatedCourse) => {
+    // Update the courses list with the new data
+    setCourses(
+      courses.map((course) =>
+        course.id === updatedCourse.id ? updatedCourse : course
+      )
+    );
+    setShowEditModal(false);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingCourse(null);
+  };
+  
+
   const handleDeleteCourse = async (courseId) => {
-  if (window.confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
-    try {
-      // Show some loading indicator if you have one
-      setLoading(true);
-      
-      const formData = new FormData();
-      formData.append("id", courseId);
-
-      console.log("Sending delete request for course ID:", courseId);
-      
-      const response = await axios.post(
-        "http://localhost/EASCBackend/index.php?route=delectcourses",
-        formData
-      );
-      
-      console.log("Delete response:", response);
-
-      if (response.data && response.data.status === "success") {
-        // Update the local state to remove the deleted course
-        setCourses(courses.filter((course) => course.id !== courseId));
+    if (window.confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+      try {
+        // Show some loading indicator if you have one
+        setLoading(true);
         
-        // Show a more detailed success message
-        const deletedFiles = response.data.cloudinary_files_deleted ? 
-                            response.data.cloudinary_files_deleted.length : 0;
-        const message = `Course deleted successfully. ${deletedFiles} files removed from Cloudinary.`;
-        alert(message);
-      } else {
-        const errorMessage = response.data && response.data.message 
-          ? response.data.message 
-          : "Unknown error occurred";
-        alert("Error: " + errorMessage);
+        const formData = new FormData();
+        formData.append("id", courseId);
+
+        console.log("Sending delete request for course ID:", courseId);
+        
+        const response = await axios.post(
+          "http://localhost/EASCBackend/index.php?route=delectcourses",
+          formData
+        );
+        
+        console.log("Delete response:", response);
+
+        if (response.data && response.data.status === "success") {
+          // Update the local state to remove the deleted course
+          setCourses(courses.filter((course) => course.id !== courseId));
+          
+          // Show a more detailed success message
+          const deletedFiles = response.data.cloudinary_files_deleted ? 
+                             response.data.cloudinary_files_deleted.length : 0;
+          const message = `Course deleted successfully. ${deletedFiles} files removed from Cloudinary.`;
+          alert(message);
+        } else {
+          const errorMessage = response.data && response.data.message 
+            ? response.data.message 
+            : "Unknown error occurred";
+          alert("Error: " + errorMessage);
+        }
+      } catch (err) {
+        console.error("Error deleting course:", err);
+        
+        if (err.response && err.response.data) {
+          alert("Error: " + (err.response.data.message || "Unknown server error"));
+        } else {
+          alert("Failed to delete course. Please try again later.");
+        }
+      } finally {
+        // Hide loading indicator
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error deleting course:", err);
-      
-      if (err.response && err.response.data) {
-        alert("Error: " + (err.response.data.message || "Unknown server error"));
-      } else {
-        alert("Failed to delete course. Please try again later.");
-      }
-    } finally {
-      // Hide loading indicator
-      setLoading(false);
     }
-  }
-};
+  };
+
   const handleViewCourse = (course) => {
     setSelectedCourse(course);
     setShowModal(true);
@@ -93,7 +117,9 @@ const Listofcourses = () => {
     setShowModal(false);
   };
 
-  if (loading) {
+
+
+  if (loading && courses.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -101,7 +127,7 @@ const Listofcourses = () => {
     );
   }
 
-  if (error) {
+  if (error && courses.length === 0) {
     return (
       <div
         className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md"
@@ -112,6 +138,7 @@ const Listofcourses = () => {
       </div>
     );
   }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Courses List</h1>
@@ -186,7 +213,10 @@ const Listofcourses = () => {
                       >
                         View
                       </button>
-                      <button className="text-green-600 hover:text-green-900 mr-3">
+                      <button 
+                        onClick={() => handleEditCourse(course)}
+                        className="text-green-600 hover:text-green-900 mr-3"
+                      >
                         Edit
                       </button>
                       <button
@@ -469,6 +499,14 @@ const Listofcourses = () => {
           </div>
         </div>
       )}
+ {editingCourse && (
+    <EditCourseModal
+      course={editingCourse}
+      isOpen={showEditModal}
+      onClose={closeEditModal}
+      onSuccess={handleEditSuccess}
+    />
+  )}
     </div>
   );
 };

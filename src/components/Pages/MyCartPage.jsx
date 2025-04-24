@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Trash2, ShoppingBag, AlertCircle, CreditCard, ArrowRight } from "lucide-react";
+import { Trash2, ShoppingBag, AlertCircle, CreditCard, ArrowRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const MyCartPage = () => {
@@ -12,9 +12,6 @@ const MyCartPage = () => {
   const [couponError, setCouponError] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [couponLoading, setCouponLoading] = useState(false);
-
-  // Tax rate (18% GST)
-  const taxRate = 0.18;
 
   useEffect(() => {
     // Fetch cart items from localStorage
@@ -135,9 +132,8 @@ const MyCartPage = () => {
     setCouponApplied(true);
   };
 
-  // Calculate order summary
-  const tax = (subtotal - discount) * taxRate;
-  const totalAmount = subtotal - discount + tax;
+  // Calculate total amount (removed tax calculation)
+  const totalAmount = subtotal - discount;
 
   // Proceed to checkout
   const handleCheckout = () => {
@@ -250,6 +246,11 @@ const MyCartPage = () => {
                               <p className="mt-1 text-sm text-gray-500">
                                 {item.duration || "Self-paced"}
                               </p>
+                              {/* Subscription Duration Badge */}
+                              <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                <Clock size={14} className="mr-1" />
+                                1 Year Access
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-lg font-medium text-emerald-700">
@@ -306,18 +307,24 @@ const MyCartPage = () => {
                       </div>
                     )}
 
-                    <div className="flex justify-between">
-                      <p className="text-base text-gray-600">Tax (18% GST)</p>
-                      <p className="text-base font-medium text-gray-900">₹{tax.toLocaleString()}</p>
-                    </div>
-
                     <div className="border-t border-gray-200 pt-4 flex justify-between">
                       <p className="text-base font-bold text-gray-900">Total</p>
                       <p className="text-xl font-bold text-emerald-700">₹{totalAmount.toLocaleString()}</p>
                     </div>
                   </div>
+                  
+                  {/* Subscription Info */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                    <div className="flex items-start">
+                      <Clock size={18} className="mt-0.5 text-gray-500 mr-2" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">All Courses Include:</p>
+                        <p className="text-sm text-gray-600">1 Year Subscription Access</p>
+                      </div>
+                    </div>
+                  </div>
 
-                  {/* Coupon Code */}
+                  {/* Coupon Code - Always show it since the UI in the screenshot shows it */}
                   <div className="mt-6">
                     <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-1">
                       Apply Coupon Code
@@ -365,23 +372,6 @@ const MyCartPage = () => {
                         <AlertCircle size={16} className="mr-1" />
                         {couponError}
                       </p>
-                    )}
-
-                    {/* Available coupon codes display */}
-                    {availableCoupons.length > 0 && (
-                      <div className="mt-3 text-xs text-gray-500">
-                        <p>Available coupon codes:</p>
-                        <ul className="mt-1">
-                          {availableCoupons.slice(0, 3).map((coupon) => (
-                            <li key={coupon.id} className="mt-1">
-                              <span className="font-medium">{coupon.code}</span> - {coupon.discountPercentage}% off
-                            </li>
-                          ))}
-                          {availableCoupons.length > 3 && (
-                            <li className="mt-1">+ {availableCoupons.length - 3} more coupons available</li>
-                          )}
-                        </ul>
-                      </div>
                     )}
                   </div>
 
