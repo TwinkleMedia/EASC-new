@@ -140,7 +140,7 @@ const CEMExamsPage = () => {
       
       // Option to navigate to cart page
       if (confirm("View your cart?")) {
-        navigate("/cart"); // Redirect to cart page
+        navigate("/my-cart"); // Redirect to cart page
       }
     } else {
       // Course already in cart

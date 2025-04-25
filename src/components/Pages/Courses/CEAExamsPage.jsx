@@ -130,7 +130,7 @@ const CEAExamsPage = () => {
       
       // Option to navigate to cart page
       if (confirm("View your cart?")) {
-        navigate("/cart"); // Redirect to cart page
+        navigate("/git my-cart"); // Redirect to cart page
       }
     } else {
       // Course already in cart
@@ -232,7 +232,7 @@ const CEAExamsPage = () => {
           {/* Cart Button - Navigation to Cart Page */}
           <div className="fixed bottom-6 right-6 z-10">
             <Link 
-              to="/cart"
+              to="/my-cart"
               className="flex items-center justify-center h-16 w-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg transition-all hover:scale-105"
             >
               <ShoppingCart size={28} />
