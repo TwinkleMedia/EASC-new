@@ -1,15 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, X, BookOpen, Users, Home, Phone, LogIn, Briefcase, PenLine, User, ShoppingCart, LogOut, Book, ChevronDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from "../../assets/EASC-logo.png";
+import Swal from "sweetalert2";
 
 const TopNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isCoursesMenuOpen, setIsCoursesMenuOpen] = useState(false);
+    // Add a separate state for mobile courses dropdown
+    const [isMobileCoursesMenuOpen, setIsMobileCoursesMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
+    
+    // Create refs for the dropdown menus
+    const userMenuRef = useRef(null);
+    const coursesMenuRef = useRef(null);
+    const mobileMenuRef = useRef(null);
+    const mobileCoursesMenuRef = useRef(null);
 
     // Check authentication status on component mount
     useEffect(() => {
@@ -34,19 +43,66 @@ const TopNavbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Handle click outside dropdown menus
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Desktop dropdowns
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setIsUserMenuOpen(false);
+            }
+            
+            if (coursesMenuRef.current && !coursesMenuRef.current.contains(event.target)) {
+                setIsCoursesMenuOpen(false);
+            }
+            
+            // For the mobile menu, we don't want it to close when clicking inside it
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && 
+                !event.target.closest('button[aria-label="toggle-menu"]')) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        // Add event listener when any dropdown is open
+        if (isUserMenuOpen || isCoursesMenuOpen || isMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        
+        // Clean up the event listener
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isUserMenuOpen, isCoursesMenuOpen, isMenuOpen]);
+
     // Toggle mobile menu
-    const toggleMenu = () => {
+    const toggleMenu = (e) => {
+        if (e) e.stopPropagation(); // Prevent event from bubbling up
         setIsMenuOpen(!isMenuOpen);
     };
 
     // Toggle user dropdown menu
-    const toggleUserMenu = () => {
+    const toggleUserMenu = (e) => {
+        if (e) e.stopPropagation(); // Prevent event from bubbling up
         setIsUserMenuOpen(!isUserMenuOpen);
+        // Close other menu when this one opens
+        if (!isUserMenuOpen) {
+            setIsCoursesMenuOpen(false);
+        }
     };
 
-    // Toggle courses dropdown menu
-    const toggleCoursesMenu = () => {
+    // Toggle courses dropdown menu (desktop)
+    const toggleCoursesMenu = (e) => {
+        if (e) e.stopPropagation(); // Prevent event from bubbling up
         setIsCoursesMenuOpen(!isCoursesMenuOpen);
+        // Close other menu when this one opens
+        if (!isCoursesMenuOpen) {
+            setIsUserMenuOpen(false);
+        }
+    };
+
+    // Toggle mobile courses dropdown menu
+    const toggleMobileCoursesMenu = (e) => {
+        if (e) e.stopPropagation(); // Prevent event from bubbling up
+        setIsMobileCoursesMenuOpen(!isMobileCoursesMenuOpen);
     };
 
     // Handle logout
@@ -57,10 +113,27 @@ const TopNavbar = () => {
         setUser(null);
         // Close dropdown menu
         setIsUserMenuOpen(false);
-        // Optional: Redirect to home or login page
-        navigate('/');
-        // Show feedback to user
-        alert('You have successfully logged out.');
+        // Close mobile menu
+        setIsMenuOpen(false);
+
+        // Show beautiful logout notification with SweetAlert2
+        Swal.fire({
+            icon: 'success',
+            title: 'Logged Out!',
+            text: 'You have successfully logged out.',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true,
+            iconColor: '#10b981',
+            customClass: {
+                popup: 'colored-toast'
+            }
+        }).then(() => {
+            // Redirect to home page after the alert closes
+            navigate('/');
+        });
     };
 
     // Navigation items with icons - note course is NOT included here as it's handled separately
@@ -75,8 +148,8 @@ const TopNavbar = () => {
 
     // Course dropdown items
     const courseItems = [
-        { name: 'CEMExamsPage', path: '/courses/cem-exams' },
-        { name: 'CEAExamsPage', path: '/courses/cea-exams' },
+        { name: 'CEMExamsPage',icon: <Book size={18} />, path: '/courses/cem-exams' },
+        { name: 'CEAExamsPage',icon: <Book size={18} />, path: '/courses/cea-exams' },
     ];
 
     return (
@@ -113,7 +186,7 @@ const TopNavbar = () => {
                             <Home size={18} className="mr-1" />
                             Home
                         </Link>
-                        
+
                         <Link
                             to="/about"
                             className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
@@ -123,7 +196,7 @@ const TopNavbar = () => {
                         </Link>
 
                         {/* Courses dropdown */}
-                        <div className="relative">
+                        <div className="relative" ref={coursesMenuRef}>
                             <button
                                 onClick={toggleCoursesMenu}
                                 className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
@@ -149,7 +222,7 @@ const TopNavbar = () => {
                                 </div>
                             )}
                         </div>
-                        
+
                         {/* Services, Blogs, Contact Us */}
                         <Link
                             to="/services"
@@ -158,7 +231,7 @@ const TopNavbar = () => {
                             <Briefcase size={18} className="mr-1" />
                             Services
                         </Link>
-                        
+
                         <Link
                             to="/blogs"
                             className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
@@ -166,7 +239,7 @@ const TopNavbar = () => {
                             <PenLine size={18} className="mr-1" />
                             Blogs
                         </Link>
-                        
+
                         <Link
                             to="/contact"
                             className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
@@ -174,9 +247,9 @@ const TopNavbar = () => {
                             <Phone size={18} className="mr-1" />
                             Contact Us
                         </Link>
-                        
+
                         {user ? (
-                            <div className="relative">
+                            <div className="relative" ref={userMenuRef}>
                                 <button
                                     onClick={toggleUserMenu}
                                     className="flex items-center text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors duration-200"
@@ -184,7 +257,7 @@ const TopNavbar = () => {
                                     <User size={20} className="text-emerald-600" />
                                     <span className="ml-2">{user.name?.split(' ')[0] || 'User'}</span>
                                 </button>
-                                
+
                                 {/* User Dropdown Menu */}
                                 {isUserMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
@@ -229,6 +302,7 @@ const TopNavbar = () => {
                     <div className="md:hidden flex items-center">
                         <button
                             onClick={toggleMenu}
+                            aria-label="toggle-menu"
                             className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-emerald-600 hover:bg-gray-100 focus:outline-none"
                         >
                             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -239,7 +313,7 @@ const TopNavbar = () => {
 
             {/* Mobile menu */}
             {isMenuOpen && (
-                <div className="md:hidden">
+                <div className="md:hidden" ref={mobileMenuRef}>
                     <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg rounded-b-lg">
                         {/* Home */}
                         <Link
@@ -250,7 +324,7 @@ const TopNavbar = () => {
                             <Home size={18} className="mr-2" />
                             Home
                         </Link>
-                        
+
                         {/* About Us */}
                         <Link
                             to="/about"
@@ -260,28 +334,31 @@ const TopNavbar = () => {
                             <Users size={18} className="mr-2" />
                             About Us
                         </Link>
-                        
+
                         {/* Courses dropdown for mobile */}
-                        <div>
+                        <div ref={mobileCoursesMenuRef}>
                             <button
                                 className="flex items-center justify-between w-full text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
-                                onClick={() => setIsCoursesMenuOpen(!isCoursesMenuOpen)}
+                                onClick={toggleMobileCoursesMenu}
                             >
                                 <div className="flex items-center">
                                     <BookOpen size={18} className="mr-2" />
                                     Courses
                                 </div>
-                                <ChevronDown size={18} className={`transition-transform ${isCoursesMenuOpen ? 'rotate-180' : ''}`} />
+                                <ChevronDown size={18} className={`transition-transform ${isMobileCoursesMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
-                            
-                            {isCoursesMenuOpen && (
+
+                            {isMobileCoursesMenuOpen && (
                                 <div className="pl-8 mt-1 space-y-1">
                                     {courseItems.map((item) => (
                                         <Link
                                             key={item.name}
                                             to={item.path}
                                             className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium"
-                                            onClick={() => setIsMenuOpen(false)}
+                                            onClick={() => {
+                                                setIsMobileCoursesMenuOpen(false);
+                                                setIsMenuOpen(false);
+                                            }}
                                         >
                                             {item.name}
                                         </Link>
@@ -289,7 +366,7 @@ const TopNavbar = () => {
                                 </div>
                             )}
                         </div>
-                        
+
                         {/* Services */}
                         <Link
                             to="/services"
@@ -299,7 +376,7 @@ const TopNavbar = () => {
                             <Briefcase size={18} className="mr-2" />
                             Services
                         </Link>
-                        
+
                         {/* Blogs */}
                         <Link
                             to="/blogs"
@@ -309,7 +386,7 @@ const TopNavbar = () => {
                             <PenLine size={18} className="mr-2" />
                             Blogs
                         </Link>
-                        
+
                         {/* Contact Us */}
                         <Link
                             to="/contact"
@@ -319,7 +396,7 @@ const TopNavbar = () => {
                             <Phone size={18} className="mr-2" />
                             Contact Us
                         </Link>
-                        
+
                         {user ? (
                             <>
                                 <div className="flex items-center px-3 py-2 text-gray-700">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LogIn, Phone, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import logo from "../../assets/EASC-logo.png";
 import emailjs from "@emailjs/browser";
@@ -63,84 +64,168 @@ const LoginSystem = () => {
       if (result.success) {
         console.log("Login successful:", result.user);
         localStorage.setItem("user", JSON.stringify(result.user));
-        localStorage.setItem("loginRedirect", "home");
-        alert("Login successful!");
-        window.location.href = "/";
+        
+        // Check if there's a pending cart item
+        const pendingCartItem = localStorage.getItem("pendingCartItem");
+        const loginRedirect = localStorage.getItem("loginRedirect");
+        
+        if (pendingCartItem && (loginRedirect === "cea-exams" || loginRedirect === "cem-exams")) {
+          // Success message with SweetAlert2
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful!',
+            text: 'Adding item to your cart...',
+            confirmButtonColor: '#10b981',
+            timer: 2000,
+            timerProgressBar: true
+          }).then(() => {
+            // Add the pending item to cart
+            const existingCart = localStorage.getItem("cart");
+            let cartItems = existingCart ? JSON.parse(existingCart) : [];
+            
+            const courseToAdd = JSON.parse(pendingCartItem);
+            cartItems.push(courseToAdd);
+            
+            localStorage.setItem("cart", JSON.stringify(cartItems));
+            
+            // Clear the pending item
+            localStorage.removeItem("pendingCartItem");
+            localStorage.removeItem("loginRedirect");
+            
+            // Redirect based on login redirect value
+            window.location.href = `/courses/${loginRedirect}`;
+          });
+        } else {
+          // Simple success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Welcome Back!',
+            text: 'Login successful',
+            confirmButtonColor: '#10b981',
+            timer: 1500,
+            timerProgressBar: true
+          }).then(() => {
+            // Default redirect if no pending action
+            const redirectTo = loginRedirect || "home";
+            localStorage.removeItem("loginRedirect");
+            window.location.href = redirectTo === "home" ? "/" : `/${redirectTo}`;
+          });
+        }
       } else {
-        alert(result.message || "Login failed");
+        // Error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: result.message || 'Invalid email or password',
+          confirmButtonColor: '#10b981'
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("An error occurred while logging in.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'An error occurred while logging in',
+        footer: 'Please try again later',
+        confirmButtonColor: '#10b981'
+      });
     }
   };
   
   const handleForgotPasswordSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  
-  try {
-    // First check if email exists in your database
-    const checkResponse = await fetch("http://localhost/EASCBackend/index.php?route=check_email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: forgotPasswordData.email }),
-    });
+    e.preventDefault();
+    setIsSubmitting(true);
     
-    const checkResult = await checkResponse.json();
-    
-    if (!checkResult.exists) {
-      alert("No account found with this email address.");
+    try {
+      // First check if email exists in your database
+      const checkResponse = await fetch("http://localhost/EASCBackend/index.php?route=check_email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: forgotPasswordData.email }),
+      });
+      
+      const checkResult = await checkResponse.json();
+      
+      if (!checkResult.exists) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Account Not Found',
+          text: 'No account found with this email address',
+          confirmButtonColor: '#10b981'
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Show loading state
+      Swal.fire({
+        title: 'Processing',
+        text: 'Generating reset link...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      // Generate a reset token on backend
+      const tokenResponse = await fetch("http://localhost/EASCBackend/index.php?route=generate_reset_token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: forgotPasswordData.email }),
+      });
+      
+      const tokenResult = await tokenResponse.json();
+      
+      if (!tokenResult.success) {
+        throw new Error(tokenResult.message || "Failed to generate reset token");
+      }
+      
+      // Create reset link
+      const resetLink = `${window.location.origin}/reset-password?token=${tokenResult.token}&email=${encodeURIComponent(forgotPasswordData.email)}`;
+      
+      // Send email using EmailJS
+      const templateParams = {
+        to_name: tokenResult.name || "User",
+        to_email: forgotPasswordData.email,
+        from_name: "EASC Support",
+        reset_link: resetLink,
+        message: "Please click the link below to reset your password. This link will expire in 1 hour."
+      };
+      
+      const emailResponse = await emailjs.send(
+        "service_6uddxja",
+        "template_u3ldfvy",
+        templateParams,
+        "WxHQ0YhdYDG9Q-FA2"
+      );
+      
+      console.log("Email sent successfully:", emailResponse);
+      setResetSent(true);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Email Sent!',
+        text: 'Please check your inbox for the password reset link',
+        confirmButtonColor: '#10b981'
+      });
+      
+    } catch (error) {
+      console.error("Password reset error:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Reset Failed',
+        text: 'An error occurred during the password reset process',
+        footer: 'Please try again later',
+        confirmButtonColor: '#10b981'
+      });
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-    
-    // Generate a reset token on backend
-    const tokenResponse = await fetch("http://localhost/EASCBackend/index.php?route=generate_reset_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: forgotPasswordData.email }),
-    });
-    
-    const tokenResult = await tokenResponse.json();
-    
-    if (!tokenResult.success) {
-      throw new Error(tokenResult.message || "Failed to generate reset token");
-    }
-    
-    // Create reset link
-    const resetLink = `${window.location.origin}/reset-password?token=${tokenResult.token}&email=${encodeURIComponent(forgotPasswordData.email)}`;
-    
-    // Send email using EmailJS
-    const templateParams = {
-      to_name: tokenResult.name || "User",
-      to_email: forgotPasswordData.email, // This ensures the email goes to the user
-      from_name: "EASC Support",
-      reset_link: resetLink,
-      message: "Please click the link below to reset your password. This link will expire in 1 hour."
-    };
-    
-    const emailResponse = await emailjs.send(
-      "service_6uddxja", // your EmailJS service ID
-      "template_u3ldfvy", // your EmailJS template ID
-      templateParams,
-      "WxHQ0YhdYDG9Q-FA2" // your EmailJS public key
-    );
-    
-    console.log("Email sent successfully:", emailResponse);
-    setResetSent(true);
-    
-  } catch (error) {
-    console.error("Password reset error:", error);
-    alert("An error occurred during the password reset process. Please try again later.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   // Handle signup form inputs
   const handleSignupChange = (e) => {
@@ -157,9 +242,24 @@ const LoginSystem = () => {
     
     // Validate form data
     if (signupData.password !== signupData.confirmPassword) {
-      alert("Passwords do not match!");
+      Swal.fire({
+        icon: 'error',
+        title: 'Password Mismatch',
+        text: 'Passwords do not match!',
+        confirmButtonColor: '#10b981'
+      });
       return;
     }
+    
+    // Show loading state
+    Swal.fire({
+      title: 'Creating Account',
+      text: 'Please wait...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
     
     try {
       // Call the PHP signup endpoint
@@ -178,30 +278,51 @@ const LoginSystem = () => {
         
         if (data.success) {
           // Show success message
-          alert(data.message);
-          // Reset form
-          setSignupData({
-            name: '',
-            email: '',
-            contact: '',
-            password: '',
-            confirmPassword: ''
+          Swal.fire({
+            icon: 'success',
+            title: 'Account Created!',
+            text: data.message || 'Your account has been created successfully',
+            confirmButtonColor: '#10b981'
+          }).then(() => {
+            // Reset form
+            setSignupData({
+              name: '',
+              email: '',
+              contact: '',
+              password: '',
+              confirmPassword: ''
+            });
+            // Redirect to login
+            setCurrentForm("login");
           });
-          // Redirect to login
-          setCurrentForm("login");
         } else {
           // Show error message
-          alert(data.message || 'Signup failed. Please try again.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Signup Failed',
+            text: data.message || 'Signup failed. Please try again.',
+            confirmButtonColor: '#10b981'
+          });
         }
       } else {
         // Handle non-JSON response (likely an error)
         const textResponse = await response.text();
         console.error('Server returned non-JSON response:', textResponse);
-        alert('Server error occurred. Please check your PHP backend configuration.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Server Error',
+          text: 'Server error occurred. Please check your PHP backend configuration.',
+          confirmButtonColor: '#10b981'
+        });
       }
     } catch (error) {
       console.error('Error during signup:', error);
-      alert('An error occurred during signup. Please try again later.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Connection Error',
+        text: 'An error occurred during signup. Please try again later.',
+        confirmButtonColor: '#10b981'
+      });
     }
   };
 

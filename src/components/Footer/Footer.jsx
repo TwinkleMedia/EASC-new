@@ -1,33 +1,23 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Facebook, 
-  Twitter, 
-  Linkedin, 
-  Instagram, 
-  ArrowRight, 
-  Send,
-  BookOpen,
-  Users,
-  Briefcase,
-  Home,
-  Award
-} from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, ArrowRight, Send, BookOpen, Users, Briefcase, Home, PenLine } from 'lucide-react';
 import logo from "../../assets/EASC-logo.png";
+import Modal from './Modal';
+import PrivacyPolicy from './PrivacyPolicy';
+import TermsOfService from './TermsOfService';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
-  
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle newsletter submission
     alert(`Thank you for subscribing with: ${email}`);
     setEmail('');
   };
-  
+
   return (
     <footer className="bg-gray-900 text-white">
       {/* Top wave decoration */}
@@ -40,11 +30,11 @@ const Footer = () => {
           ></path>
         </svg>
       </div> */}
-      
+
       {/* Main footer content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          
+
           {/* Column 1: About */}
           <div>
             <div className="flex items-center mb-6">
@@ -56,11 +46,11 @@ const Footer = () => {
                 <p className="text-sm text-gray-300">Energy Auditors Study Centre</p>
               </div>
             </div>
-            
+
             <p className="text-gray-400 mb-6">
               Leading the way in energy auditing education and certification. We provide comprehensive training programs for energy efficiency professionals.
             </p>
-            
+
             <div className="flex space-x-4">
               <a href="#" className="w-8 h-8 rounded-full bg-emerald-600/20 flex items-center justify-center hover:bg-emerald-600 transition-colors">
                 <Facebook size={16} />
@@ -76,7 +66,7 @@ const Footer = () => {
               </a>
             </div>
           </div>
-          
+
           {/* Column 2: Quick Links */}
           <div>
             <h3 className="text-xl font-bold mb-6 flex items-center">
@@ -85,7 +75,7 @@ const Footer = () => {
               </span>
               Quick Links
             </h3>
-            
+
             <ul className="space-y-3">
               <li>
                 <Link to="/" className="text-gray-400 hover:text-emerald-400 transition-colors flex items-center">
@@ -108,18 +98,23 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/blogs" className="text-gray-400 hover:text-emerald-400 transition-colors flex items-center">
+                  <PenLine size={14} className="mr-2" /> Blogs
+                </Link>
+              </li>
+              <li>
                 <Link to="/contact" className="text-gray-400 hover:text-emerald-400 transition-colors flex items-center">
                   <Phone size={14} className="mr-2" /> Contact Us
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link to="/login" className="text-gray-400 hover:text-emerald-400 transition-colors flex items-center">
                   <Award size={14} className="mr-2" /> Certification
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
-          
+
           {/* Column 3: Contact Info */}
           <div>
             <h3 className="text-xl font-bold mb-6 flex items-center">
@@ -128,7 +123,7 @@ const Footer = () => {
               </span>
               Contact Us
             </h3>
-            
+
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin size={18} className="text-emerald-400 mt-1 mr-3 flex-shrink-0" />
@@ -151,7 +146,7 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-          
+
           {/* Column 4: Newsletter */}
           <div>
             <h3 className="text-xl font-bold mb-6 flex items-center">
@@ -160,11 +155,11 @@ const Footer = () => {
               </span>
               Newsletter
             </h3>
-            
+
             <p className="text-gray-400 mb-4">
               Subscribe to our newsletter for the latest updates, courses, and energy efficiency news.
             </p>
-            
+
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="relative">
                 <input
@@ -183,7 +178,7 @@ const Footer = () => {
                 </button>
               </div>
             </form>
-            
+
             <div className="mt-6 p-4 bg-emerald-600/10 rounded-lg border border-emerald-600/20">
               <p className="text-sm text-emerald-400">
                 Join over 2,500 energy professionals who trust our training programs and resources.
@@ -192,7 +187,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Copyright bar */}
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -200,23 +195,34 @@ const Footer = () => {
             <p className="text-gray-500 text-sm">
               © {new Date().getFullYear()} Energy Auditors Study Centre. All rights reserved.
             </p>
-            
+
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link to="/privacy" className="text-gray-500 hover:text-emerald-400 text-sm transition-colors">
+              <button
+                onClick={() => setShowPrivacyModal(true)}
+                className="text-gray-500 hover:text-emerald-400 text-sm transition-colors"
+              >
                 Privacy Policy
-              </Link>
-              <Link to="/terms" className="text-gray-500 hover:text-emerald-400 text-sm transition-colors">
+              </button>
+              <button
+                onClick={() => setShowTermsModal(true)}
+                className="text-gray-500 hover:text-emerald-400 text-sm transition-colors"
+              >
                 Terms of Service
-              </Link>
-              <Link to="/sitemap" className="text-gray-500 hover:text-emerald-400 text-sm transition-colors">
-                Sitemap
-              </Link>
+              </button>
             </div>
+            <Modal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)}>
+              <PrivacyPolicy isModal={true} />
+            </Modal>
+
+            <Modal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)}>
+              <TermsOfService isModal={true} />
+            </Modal>
           </div>
         </div>
       </div>
     </footer>
   );
+
 };
 
 export default Footer;
