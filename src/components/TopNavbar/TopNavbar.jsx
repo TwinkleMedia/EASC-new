@@ -148,8 +148,8 @@ const TopNavbar = () => {
 
     // Course dropdown items
     const courseItems = [
-        { name: 'CEMExamsPage',icon: <Book size={18} />, path: '/courses/cem-exams' },
-        { name: 'CEAExamsPage',icon: <Book size={18} />, path: '/courses/cea-exams' },
+        { name: 'CEM Exams Course',icon: <Book size={18} />, path: '/courses/cem-exams' },
+        { name: 'CEA Exams Course',icon: <Book size={18} />, path: '/courses/cea-exams' },
     ];
 
     return (
@@ -168,10 +168,10 @@ const TopNavbar = () => {
                                 <img src={logo} alt="EASC Logo" className="logo" />
                             </div>
                             <span className="ml-2 text-xl font-bold text-gray-800 hidden sm:block">
-                                EASC
+                                EAIC
                             </span>
                             <span className="ml-2 text-sm text-gray-600 hidden lg:block">
-                                Energy Auditors Study Centre
+                                Energy Auditors Information Centre
                             </span>
                         </Link>
                     </div>
@@ -316,7 +316,7 @@ const TopNavbar = () => {
                 <div className="md:hidden" ref={mobileMenuRef}>
                     <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg rounded-b-lg">
                         {/* Home */}
-                        <Link
+                        <Link 
                             to="/"
                             className="flex items-center text-gray-700 hover:text-emerald-600 hover:bg-gray-50 px-3 py-2 rounded-md text-base font-medium"
                             onClick={() => setIsMenuOpen(false)}

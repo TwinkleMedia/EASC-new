@@ -103,7 +103,7 @@ const HomePage = () => {
             
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
               Energy Auditors <br className="hidden md:block" />
-              <span className="text-emerald-400">Study</span> Centre
+              <span className="text-emerald-400">Information</span> Centre
             </h1>
             
             <p className="text-xl text-gray-200 mb-8 max-w-2xl">
@@ -136,7 +136,7 @@ const HomePage = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">About Us</h2>
             <div className="w-20 h-1 bg-emerald-600 mx-auto"></div>
             <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto">
-              Energy Auditors Study Centre (EASC) is dedicated to training the next generation of energy efficiency professionals.
+              Energy Auditors Information Centre (EAIC) is dedicated to training the next generation of energy efficiency professionals.
             </p>
           </div>
           

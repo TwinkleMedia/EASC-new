@@ -42,8 +42,8 @@ const Footer = () => {
                 <img src={logo} alt="EASC Logo" className="h-full w-full object-cover" />
               </div>
               <div className="ml-3">
-                <h3 className="font-bold text-lg text-white">EASC</h3>
-                <p className="text-sm text-gray-300">Energy Auditors Study Centre</p>
+                <h3 className="font-bold text-lg text-white">EAIC</h3>
+                <p className="text-sm text-gray-300">Energy Auditors Information Centre</p>
               </div>
             </div>
 

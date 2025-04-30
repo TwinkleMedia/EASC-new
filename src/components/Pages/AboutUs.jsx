@@ -71,7 +71,7 @@ const AboutUs = () => {
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">About <span className="text-emerald-400">EASC</span></h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">About <span className="text-emerald-400">EAIC</span></h1>
             <div className="w-24 h-1 bg-emerald-500 mx-auto mb-8"></div>
             <p className="text-xl text-gray-100 max-w-3xl mx-auto">
               We are dedicated to empowering professionals with the knowledge and skills 

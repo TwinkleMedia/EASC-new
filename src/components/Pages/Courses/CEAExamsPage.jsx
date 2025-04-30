@@ -250,7 +250,7 @@ const handleAddToCart = (course) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <span className="text-emerald-600 font-semibold tracking-wider text-sm uppercase">Our Offerings</span>
-            <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">CEA Exam Preparation</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">CEA Exam Preparatory Courses</h2>
             <div className="w-16 h-1 bg-emerald-600 mx-auto mb-6"></div>
           </div>
 
