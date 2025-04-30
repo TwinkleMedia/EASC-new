@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Trash2, ShoppingBag, AlertCircle, CreditCard, ArrowRight, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const MyCartPage = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subtotal, setSubtotal] = useState(0);
@@ -12,6 +13,49 @@ const MyCartPage = () => {
   const [couponError, setCouponError] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+
+  // Get user info from localStorage with proper error handling
+  const [userInfo, setUserInfo] = useState({});
+
+  // Create a more robust isLoggedIn check function
+  const isLoggedIn = () => {
+    try {
+      const userInfoData = localStorage.getItem("userInfo");
+      if (!userInfoData) return false;
+      
+      const parsedUserInfo = JSON.parse(userInfoData);
+      return Boolean(parsedUserInfo && parsedUserInfo.id);
+    } catch (error) {
+      console.error("Error checking login status:", error);
+      return false;
+    }
+  };
+  
+  useEffect(() => {
+    // Load user info with proper error handling
+    try {
+      const userInfoData = localStorage.getItem("userInfo");
+      if (userInfoData) {
+        const parsedUserInfo = JSON.parse(userInfoData);
+        setUserInfo(parsedUserInfo);
+        console.log("Current user info:", parsedUserInfo);
+      }
+    } catch (error) {
+      console.error("Error loading user info:", error);
+    }
+    
+    // Check if we have a token but no userInfo (potential cause of the issue)
+    const token = localStorage.getItem("token");
+    const userInfoData = localStorage.getItem("userInfo");
+    
+    if (token && (!userInfoData || userInfoData === "{}")) {
+      console.log("Token exists but userInfo is missing or empty. Authentication issue detected.");
+      // You might want to implement a function to fetch user data here or clear tokens
+      // fetchUserData(token);
+    }
+  }, []);
 
   useEffect(() => {
     // Fetch cart items from localStorage
@@ -132,19 +176,210 @@ const MyCartPage = () => {
     setCouponApplied(true);
   };
 
-  // Calculate total amount (removed tax calculation)
+  // Calculate total amount
   const totalAmount = subtotal - discount;
 
-  // Proceed to checkout
-  const handleCheckout = () => {
-    // This would normally redirect to a payment gateway
-    // For demo purposes, we'll just show an alert
-    alert("Proceeding to payment gateway...");
+// Load Razorpay SDK dynamically
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
     
-    // Could implement redirect to a checkout page:
-    // navigate("/checkout");
-  };
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => {
+      resolve(true);
+    };
+    script.onerror = () => {
+      console.error('Razorpay SDK failed to load');
+      resolve(false); // Resolve with false to indicate error
+    };
+    document.body.appendChild(script);
+  });
+};
 
+const handleCheckout = async () => {
+  console.log("Checkout clicked, userInfo:", userInfo);
+  
+  // Check if user is logged in
+  if (!isLoggedIn()) {
+    console.log("User not logged in, redirecting to login");
+    navigate("/login?redirect=cart");
+    return;
+  }
+  
+  // Check if cart is not empty
+  if (cartItems.length === 0) {
+    setPaymentError("Your cart is empty");
+    return;
+  }
+  
+  setProcessingPayment(true);
+  setPaymentError("");
+  
+  try {
+    // First, load the Razorpay SDK
+    const razorpayLoaded = await loadRazorpayScript();
+    if (razorpayLoaded === false) {
+      setPaymentError("Payment gateway could not be loaded. Please try again later.");
+      setProcessingPayment(false);
+      return;
+    }
+    
+    // Ensure total amount is correctly formatted for Razorpay (in paise)
+    // Making sure we're sending the right amount format
+    const amountInPaise = Math.round(totalAmount * 100);
+    
+    // Include all required fields for Razorpay
+    const paymentData = {
+      userId: userInfo.id,
+      cartItems: cartItems,
+      totalAmount: amountInPaise,
+      email: userInfo.email || "user@example.com",
+      name: userInfo.name || userInfo.username || "User",
+      phone: userInfo.contact || "9999999999",
+      subscriptionType: "yearly"
+    };
+    
+    console.log("Sending payment data:", paymentData);
+    
+    // Make API request to create order
+    const response = await fetch('http://localhost/EASCBackend/index.php?route=razorpay_payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(paymentData)
+    });
+    
+    // Check for HTTP errors first
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Server error (${response.status}):`, errorText);
+      let errorMessage = `Server error: ${response.status}`;
+      
+      try {
+        // Try to parse error as JSON
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.message) {
+          errorMessage = errorJson.message;
+        }
+      } catch (e) {
+        // If not JSON, use the raw text if it's not too long
+        if (errorText.length < 100) {
+          errorMessage = errorText;
+        }
+      }
+      
+      setPaymentError(errorMessage);
+      setProcessingPayment(false);
+      return;
+    }
+    
+    // Try to parse the response as JSON
+    let result;
+    try {
+      const responseText = await response.text();
+      console.log("Raw server response:", responseText);
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("Failed to parse server response as JSON:", parseError);
+      setPaymentError("Server returned invalid response format");
+      setProcessingPayment(false);
+      return;
+    }
+    
+    // Check if the result contains success flag
+    if (!result.success) {
+      setPaymentError(result.message || "Payment initialization failed");
+      setProcessingPayment(false);
+      return;
+    }
+    
+    // Initialize Razorpay checkout
+    const options = {
+      key: result.key_id,
+      amount: result.amount,
+      currency: result.currency,
+      name: "EASC Learning",
+      description: "Course Purchase",
+      order_id: result.order_id,
+      handler: async function(response) {
+        console.log("Razorpay payment successful:", response);
+        
+        try {
+          const verificationResponse = await fetch('http://localhost/EASCBackend/index.php?route=verify_payment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+          
+          // Check if the response is OK
+          if (!verificationResponse.ok) {
+            const errorText = await verificationResponse.text();
+            console.error(`Verification error (${verificationResponse.status}):`, errorText);
+            setPaymentError(`Payment verification failed: ${verificationResponse.status}`);
+            return;
+          }
+          
+          // Check content type to handle HTML responses
+          const contentType = verificationResponse.headers.get('content-type');
+          
+          if (contentType && contentType.includes('application/json')) {
+            // It's JSON, parse normally
+            const verificationResult = await verificationResponse.json();
+            
+            if (verificationResult.success) {
+              // Clear cart and show success message
+              localStorage.removeItem("cart");
+              setCartItems([]);
+              navigate("/payment-success");
+            } else {
+              setPaymentError(verificationResult.message || "Payment verification failed");
+            }
+          } else {
+            // Not JSON, likely HTML error - log it and show generic error
+            const errorText = await verificationResponse.text();
+            console.error("Server returned non-JSON response:", errorText);
+            setPaymentError("Server returned invalid response format. Please contact support.");
+          }
+        } catch (error) {
+          console.error("Verification error:", error);
+          setPaymentError("Payment verification failed: " + (error.message || "Unknown error"));
+        }
+      },
+      prefill: {
+        name: userInfo.name || userInfo.username || "User",
+        email: userInfo.email || "",
+        contact: userInfo.phone || userInfo.contact || ""
+      },
+      theme: {
+        color: "#3399cc"
+      },
+      modal: {
+        ondismiss: function() {
+          setProcessingPayment(false);
+          console.log("Payment modal dismissed");
+        }
+      }
+    };
+    
+    const razorpay = new window.Razorpay(options);
+    razorpay.open();
+  } catch (error) {
+    console.error("Checkout error:", error);
+    setPaymentError("Payment processing failed: " + (error.message || "Unknown error"));
+    setProcessingPayment(false);
+  }
+};
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -203,6 +438,7 @@ const MyCartPage = () => {
                                   "from-emerald-600",
                                   "to-teal-500"
                                 );
+                                e.target.style.display = "none";
                                 e.target.parentNode.innerHTML = `
                                 <div class="flex items-center justify-center h-full">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
@@ -241,8 +477,7 @@ const MyCartPage = () => {
                                 {item.title}
                               </h3>
                               <p className="mt-1 text-sm text-gray-500">
-                                {item.subject} - {item.paper || "Standard"}
-                              </p>
+                                {item.subject} - {item.paper || "Standard"}</p>
                               <p className="mt-1 text-sm text-gray-500">
                                 {item.duration || "Self-paced"}
                               </p>
@@ -324,7 +559,24 @@ const MyCartPage = () => {
                     </div>
                   </div>
 
-                  {/* Coupon Code - Always show it since the UI in the screenshot shows it */}
+                  {/* User Not Logged In Warning - FIXED: using isLoggedIn() function */}
+                  {!isLoggedIn() && (
+                    <div className="mt-4 p-3 bg-yellow-50 rounded-md border border-yellow-200">
+                      <div className="flex items-start">
+                        <AlertCircle size={18} className="mt-0.5 text-yellow-600 mr-2" />
+                        <div>
+                          <p className="text-sm font-medium text-yellow-800">You need to be logged in to checkout</p>
+                          <Link to="/login?redirect=cart" className="text-sm text-yellow-600 underline">
+                            Click here to login
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                 
+
+                  {/* Coupon Code */}
                   <div className="mt-6">
                     <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-1">
                       Apply Coupon Code
@@ -375,15 +627,34 @@ const MyCartPage = () => {
                     )}
                   </div>
 
+                  {/* Payment Error Message */}
+                  {paymentError && (
+                    <div className="mt-4 p-3 bg-red-50 rounded-md border border-red-200">
+                      <p className="text-sm text-red-600 flex items-center">
+                        <AlertCircle size={16} className="mr-1" />
+                        {paymentError}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Checkout Button */}
                   <div className="mt-6">
                     <button
                       onClick={handleCheckout}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center font-medium"
-                      disabled={cartItems.length === 0}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg transition-colors flex items-center justify-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={cartItems.length === 0 || processingPayment}
                     >
-                      <CreditCard size={18} className="mr-2" />
-                      Proceed to Checkout
+                      {processingPayment ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard size={18} className="mr-2" />
+                          Proceed to Checkout
+                        </>
+                      )}
                     </button>
                   </div>
 

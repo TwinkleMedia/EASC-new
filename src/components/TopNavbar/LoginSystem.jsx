@@ -9,6 +9,11 @@ const LoginSystem = () => {
   const [currentForm, setCurrentForm] = useState("login"); // 'login', 'forgotPassword', or 'signup'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  
+  // Add these missing state variables
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   // Form data states
   const [loginData, setLoginData] = useState({
@@ -45,102 +50,160 @@ const LoginSystem = () => {
       [name]: value,
     }));
   };
-
+  
+  // Updated handleLoginSubmit function with improved error handling
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-  
+    
+    // Show loading state
+    setIsLoading(true);
+    setLoginError("");
+    
     try {
-      const response = await fetch("http://localhost/EASCBackend/index.php?route=user_login", {
+      const res = await fetch("http://localhost/EASCBackend/index.php?route=user_login", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(loginData),
       });
-  
-      const result = await response.json();
-  
+      
+      // Check for non-200 status codes first
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      
+      // Safely parse JSON
+      let result;
+      try {
+        result = await res.json();
+      } catch (jsonError) {
+        console.error("Failed to parse JSON response:", jsonError);
+        
+        // Get the raw response for debugging
+        const resClone = res.clone();
+        const rawText = await resClone.text();
+        console.error("Raw response:", rawText);
+        
+        throw new Error("Server returned an invalid response format");
+      }
+      
+      console.log("Login response:", result);
+      
+      // Check for success in the response
       if (result.success) {
         console.log("Login successful:", result.user);
+        
+        // Store user data in localStorage
         localStorage.setItem("user", JSON.stringify(result.user));
-        localStorage.setItem("loginRedirect", "home");
-        alert("Login successful!");
-        window.location.href = "/";
+        localStorage.setItem("userInfo", JSON.stringify(result.user));
+        
+        // Set isLoggedIn flag
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("loginTime", new Date().toISOString());
+        
+        // Store token if provided
+        if (result.token) {
+          localStorage.setItem("authToken", result.token);
+          localStorage.setItem("token", result.token);
+        } else {
+          console.warn("No token received from server");
+        }
+        
+        // Show success message
+        setLoginSuccess(true);
+        
+        // Check if there's a redirect parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        
+        // Redirect after a short delay to show success message
+        setTimeout(() => {
+          if (redirect) {
+            window.location.href = `/${redirect}`;
+          } else {
+            window.location.href = "/";
+          }
+        }, 1000);
       } else {
-        alert(result.message || "Login failed");
+        // Handle server-side validation errors
+        setLoginError(result.message || "Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("An error occurred while logging in.");
+      setLoginError("An error occurred during login. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
   const handleForgotPasswordSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  
-  try {
-    // First check if email exists in your database
-    const checkResponse = await fetch("http://localhost/EASCBackend/index.php?route=check_email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: forgotPasswordData.email }),
-    });
+    e.preventDefault();
+    setIsSubmitting(true);
     
-    const checkResult = await checkResponse.json();
-    
-    if (!checkResult.exists) {
-      alert("No account found with this email address.");
+    try {
+      // First check if email exists in your database
+      const checkResponse = await fetch("http://localhost/EASCBackend/index.php?route=check_email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: forgotPasswordData.email }),
+      });
+      
+      const checkResult = await checkResponse.json();
+      
+      if (!checkResult.exists) {
+        alert("No account found with this email address.");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Generate a reset token on backend
+      const tokenResponse = await fetch("http://localhost/EASCBackend/index.php?route=generate_reset_token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: forgotPasswordData.email }),
+      });
+      
+      const tokenResult = await tokenResponse.json();
+      
+      if (!tokenResult.success) {
+        throw new Error(tokenResult.message || "Failed to generate reset token");
+      }
+      
+      // Create reset link
+      const resetLink = `${window.location.origin}/reset-password?token=${tokenResult.token}&email=${encodeURIComponent(forgotPasswordData.email)}`;
+      
+      // Send email using EmailJS
+      const templateParams = {
+        to_name: tokenResult.name || "User",
+        to_email: forgotPasswordData.email, // This ensures the email goes to the user
+        from_name: "EASC Support",
+        reset_link: resetLink,
+        message: "Please click the link below to reset your password. This link will expire in 1 hour."
+      };
+      
+      const emailResponse = await emailjs.send(
+        "service_6uddxja", // your EmailJS service ID
+        "template_u3ldfvy", // your EmailJS template ID
+        templateParams,
+        "WxHQ0YhdYDG9Q-FA2" // your EmailJS public key
+      );
+      
+      console.log("Email sent successfully:", emailResponse);
+      setResetSent(true);
+      
+    } catch (error) {
+      console.error("Password reset error:", error);
+      alert("An error occurred during the password reset process. Please try again later.");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-    
-    // Generate a reset token on backend
-    const tokenResponse = await fetch("http://localhost/EASCBackend/index.php?route=generate_reset_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: forgotPasswordData.email }),
-    });
-    
-    const tokenResult = await tokenResponse.json();
-    
-    if (!tokenResult.success) {
-      throw new Error(tokenResult.message || "Failed to generate reset token");
-    }
-    
-    // Create reset link
-    const resetLink = `${window.location.origin}/reset-password?token=${tokenResult.token}&email=${encodeURIComponent(forgotPasswordData.email)}`;
-    
-    // Send email using EmailJS
-    const templateParams = {
-      to_name: tokenResult.name || "User",
-      to_email: forgotPasswordData.email, // This ensures the email goes to the user
-      from_name: "EASC Support",
-      reset_link: resetLink,
-      message: "Please click the link below to reset your password. This link will expire in 1 hour."
-    };
-    
-    const emailResponse = await emailjs.send(
-      "service_6uddxja", // your EmailJS service ID
-      "template_u3ldfvy", // your EmailJS template ID
-      templateParams,
-      "WxHQ0YhdYDG9Q-FA2" // your EmailJS public key
-    );
-    
-    console.log("Email sent successfully:", emailResponse);
-    setResetSent(true);
-    
-  } catch (error) {
-    console.error("Password reset error:", error);
-    alert("An error occurred during the password reset process. Please try again later.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   // Handle signup form inputs
   const handleSignupChange = (e) => {
@@ -215,6 +278,20 @@ const LoginSystem = () => {
         <h2 className="mt-4 text-3xl font-bold text-gray-800">Welcome back</h2>
         <p className="mt-2 text-gray-600">Please sign in to your account</p>
       </div>
+
+      {/* Show error message if there is one */}
+      {loginError && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+          {loginError}
+        </div>
+      )}
+
+      {/* Show success message */}
+      {loginSuccess && (
+        <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md">
+          Login successful! Redirecting...
+        </div>
+      )}
 
       <form onSubmit={handleLoginSubmit} className="space-y-6">
         <div>
@@ -293,10 +370,17 @@ const LoginSystem = () => {
         <div>
           <button
             type="submit"
-            className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+            disabled={isLoading}
+            className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:bg-emerald-300"
           >
-            <LogIn size={18} className="mr-2" />
-            Sign in
+            {isLoading ? (
+              "Signing in..."
+            ) : (
+              <>
+                <LogIn size={18} className="mr-2" />
+                Sign in
+              </>
+            )}
           </button>
         </div>
       </form>
