@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Added imports for routing
 import { BookOpen, Award, Check, X, ChevronRight, ShoppingCart, FileText, Download } from "lucide-react";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 const CEAExamsPage = () => {
   const [courses, setCourses] = useState([]);
@@ -109,34 +110,101 @@ const CEAExamsPage = () => {
     setShowModal(false);
   };
 
-  // Improved Add to Cart function
-  const handleAddToCart = (course) => {
-    if (!course) return;
-    
-    // Get current cart items from localStorage
-    const existingCart = localStorage.getItem("cart");
-    let cartItems = existingCart ? JSON.parse(existingCart) : [];
+// Improved Add to Cart function
+const handleAddToCart = (course) => {
+  if (!course) return;
+  
+  // Get user data from localStorage
+  const userData = localStorage.getItem("user");
+  
+  // If user isn't logged in, save the course ID and redirect to login
+  if (!userData) {
+         // Show beautiful alert message before redirecting
+         Swal.fire({
+           title: 'Login Required',
+           text: 'Please log in to add courses to your cart.',
+           icon: 'info',
+           confirmButtonText: 'Login Now',
+           confirmButtonColor: '#059669', // emerald-600
+           showCancelButton: true,
+           cancelButtonText: 'Cancel',
+           background: '#ffffff',
+           iconColor: '#0284c7', // blue-600
+           customClass: {
+             confirmButton: 'px-4 py-2 rounded-lg',
+             cancelButton: 'px-4 py-2 rounded-lg'
+           }
+         }).then((result) => {
+           if (result.isConfirmed) {
+             // Save current page and course info to localStorage
+             localStorage.setItem("loginRedirect", "cea-exams");
+             localStorage.setItem("pendingCartItem", JSON.stringify(course));
+             
+             // Redirect to login page
+             navigate("/login");
+           }
+         });
+         return;
+       }
+  
+  // User is logged in, proceed with adding to cart
+  // Rest of the function remains the same...
+  const existingCart = localStorage.getItem("cart");
+  let cartItems = existingCart ? JSON.parse(existingCart) : [];
 
-    // Check if course is already in cart
-    const isInCart = cartItems.some(item => item.id === course.id);
+  // Check if course is already in cart
+  const isInCart = cartItems.some(item => item.id === course.id);
 
-    if (!isInCart) {
-      // Add course to cart
-      cartItems.push(course);
-      // Save updated cart to localStorage
-      localStorage.setItem("cart", JSON.stringify(cartItems));
-      // Show success message
-      alert(`${course.title} has been added to your cart.`);
-      
-      // Option to navigate to cart page
-      if (confirm("View your cart?")) {
-        navigate("/cart"); // Redirect to cart page
-      }
-    } else {
-      // Course already in cart
-      alert("This course is already in your cart.");
-    }
-  };
+  if (!isInCart) {
+    // Add course to cart
+    cartItems.push(course);
+    // Save updated cart to localStorage
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+          // Show success message with SweetAlert2
+          Swal.fire({
+            title: 'Added to Cart!',
+            text: `${course.title} has been added to your cart.`,
+            icon: 'success',
+            confirmButtonText: 'View Cart',
+            confirmButtonColor: '#059669', // emerald-600
+            showCancelButton: true,
+            cancelButtonText: 'Continue Shopping',
+            background: '#ffffff',
+            iconColor: '#10b981', // emerald-500
+            timer: 4000,
+            timerProgressBar: true,
+            customClass: {
+              confirmButton: 'px-4 py-2 rounded-lg',
+              cancelButton: 'px-4 py-2 rounded-lg'
+            }
+          }).then((result) => {
+            if (result.isConfirmed) {
+              navigate("/my-cart"); // Redirect to cart page
+            }
+          });
+        } else {
+          // Course already in cart - show info message
+          Swal.fire({
+            title: 'Already in Cart',
+            text: 'This course is already in your cart.',
+            icon: 'info',
+            confirmButtonText: 'View Cart',
+            confirmButtonColor: '#059669', // emerald-600
+            showCancelButton: true,
+            cancelButtonText: 'Continue Shopping',
+            background: '#ffffff',
+            iconColor: '#0284c7', // blue-600
+            customClass: {
+              confirmButton: 'px-4 py-2 rounded-lg',
+              cancelButton: 'px-4 py-2 rounded-lg'
+            }
+          }).then((result) => {
+            if (result.isConfirmed) {
+              navigate("/my-cart"); // Redirect to cart page
+            }
+          });
+        }
+      };
 
   // Default learning outcomes if none provided by the API
   const defaultLearningOutcomes = [
@@ -182,7 +250,7 @@ const CEAExamsPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <span className="text-emerald-600 font-semibold tracking-wider text-sm uppercase">Our Offerings</span>
-            <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">CEA Exam Preparation</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">CEA Exam Preparatory Courses</h2>
             <div className="w-16 h-1 bg-emerald-600 mx-auto mb-6"></div>
           </div>
 
@@ -232,7 +300,7 @@ const CEAExamsPage = () => {
           {/* Cart Button - Navigation to Cart Page */}
           <div className="fixed bottom-6 right-6 z-10">
             <Link 
-              to="/cart"
+              to="/my-cart"
               className="flex items-center justify-center h-16 w-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg transition-all hover:scale-105"
             >
               <ShoppingCart size={28} />

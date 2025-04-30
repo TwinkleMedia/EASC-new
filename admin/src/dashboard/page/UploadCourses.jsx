@@ -403,8 +403,8 @@ const UploadCourses = () => {
               {/* Old Papers PDF */}
               <FileUploadField 
                 id="oldPapers" 
-                name="oldPapers" 
-                label="Old Papers" 
+                name="old Papers" 
+                label="Old Question Papers" 
                 fileSelected={fileSelected.oldPapers} 
                 file={formData.oldPapers} 
               />

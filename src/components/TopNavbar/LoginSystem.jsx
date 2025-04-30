@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LogIn, Phone, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import logo from "../../assets/EASC-logo.png";
 import emailjs from "@emailjs/browser";
@@ -127,83 +128,80 @@ const LoginSystem = () => {
           }
         }, 1000);
       } else {
-        // Handle server-side validation errors
-        setLoginError(result.message || "Login failed");
+        alert(result.message || "Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
-      setLoginError("An error occurred during login. Please try again.");
-    } finally {
-      setIsLoading(false);
+      alert("An error occurred while logging in.");
     }
   };
   
   const handleForgotPasswordSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  e.preventDefault();
+  setIsSubmitting(true);
+  
+  try {
+    // First check if email exists in your database
+    const checkResponse = await fetch("http://localhost/EASCBackend/index.php?route=check_email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: forgotPasswordData.email }),
+    });
     
-    try {
-      // First check if email exists in your database
-      const checkResponse = await fetch("http://localhost/EASCBackend/index.php?route=check_email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: forgotPasswordData.email }),
-      });
-      
-      const checkResult = await checkResponse.json();
-      
-      if (!checkResult.exists) {
-        alert("No account found with this email address.");
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Generate a reset token on backend
-      const tokenResponse = await fetch("http://localhost/EASCBackend/index.php?route=generate_reset_token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: forgotPasswordData.email }),
-      });
-      
-      const tokenResult = await tokenResponse.json();
-      
-      if (!tokenResult.success) {
-        throw new Error(tokenResult.message || "Failed to generate reset token");
-      }
-      
-      // Create reset link
-      const resetLink = `${window.location.origin}/reset-password?token=${tokenResult.token}&email=${encodeURIComponent(forgotPasswordData.email)}`;
-      
-      // Send email using EmailJS
-      const templateParams = {
-        to_name: tokenResult.name || "User",
-        to_email: forgotPasswordData.email, // This ensures the email goes to the user
-        from_name: "EASC Support",
-        reset_link: resetLink,
-        message: "Please click the link below to reset your password. This link will expire in 1 hour."
-      };
-      
-      const emailResponse = await emailjs.send(
-        "service_6uddxja", // your EmailJS service ID
-        "template_u3ldfvy", // your EmailJS template ID
-        templateParams,
-        "WxHQ0YhdYDG9Q-FA2" // your EmailJS public key
-      );
-      
-      console.log("Email sent successfully:", emailResponse);
-      setResetSent(true);
-      
-    } catch (error) {
-      console.error("Password reset error:", error);
-      alert("An error occurred during the password reset process. Please try again later.");
-    } finally {
+    const checkResult = await checkResponse.json();
+    
+    if (!checkResult.exists) {
+      alert("No account found with this email address.");
       setIsSubmitting(false);
+      return;
     }
-  };
+    
+    // Generate a reset token on backend
+    const tokenResponse = await fetch("http://localhost/EASCBackend/index.php?route=generate_reset_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: forgotPasswordData.email }),
+    });
+    
+    const tokenResult = await tokenResponse.json();
+    
+    if (!tokenResult.success) {
+      throw new Error(tokenResult.message || "Failed to generate reset token");
+    }
+    
+    // Create reset link
+    const resetLink = `${window.location.origin}/reset-password?token=${tokenResult.token}&email=${encodeURIComponent(forgotPasswordData.email)}`;
+    
+    // Send email using EmailJS
+    const templateParams = {
+      to_name: tokenResult.name || "User",
+      to_email: forgotPasswordData.email, // This ensures the email goes to the user
+      from_name: "EASC Support",
+      reset_link: resetLink,
+      message: "Please click the link below to reset your password. This link will expire in 1 hour."
+    };
+    
+    const emailResponse = await emailjs.send(
+      "service_6uddxja", // your EmailJS service ID
+      "template_u3ldfvy", // your EmailJS template ID
+      templateParams,
+      "WxHQ0YhdYDG9Q-FA2" // your EmailJS public key
+    );
+    
+    console.log("Email sent successfully:", emailResponse);
+    setResetSent(true);
+    
+  } catch (error) {
+    console.error("Password reset error:", error);
+    alert("An error occurred during the password reset process. Please try again later.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Handle signup form inputs
   const handleSignupChange = (e) => {
@@ -220,9 +218,24 @@ const LoginSystem = () => {
     
     // Validate form data
     if (signupData.password !== signupData.confirmPassword) {
-      alert("Passwords do not match!");
+      Swal.fire({
+        icon: 'error',
+        title: 'Password Mismatch',
+        text: 'Passwords do not match!',
+        confirmButtonColor: '#10b981'
+      });
       return;
     }
+    
+    // Show loading state
+    Swal.fire({
+      title: 'Creating Account',
+      text: 'Please wait...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
     
     try {
       // Call the PHP signup endpoint
@@ -241,30 +254,51 @@ const LoginSystem = () => {
         
         if (data.success) {
           // Show success message
-          alert(data.message);
-          // Reset form
-          setSignupData({
-            name: '',
-            email: '',
-            contact: '',
-            password: '',
-            confirmPassword: ''
+          Swal.fire({
+            icon: 'success',
+            title: 'Account Created!',
+            text: data.message || 'Your account has been created successfully',
+            confirmButtonColor: '#10b981'
+          }).then(() => {
+            // Reset form
+            setSignupData({
+              name: '',
+              email: '',
+              contact: '',
+              password: '',
+              confirmPassword: ''
+            });
+            // Redirect to login
+            setCurrentForm("login");
           });
-          // Redirect to login
-          setCurrentForm("login");
         } else {
           // Show error message
-          alert(data.message || 'Signup failed. Please try again.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Signup Failed',
+            text: data.message || 'Signup failed. Please try again.',
+            confirmButtonColor: '#10b981'
+          });
         }
       } else {
         // Handle non-JSON response (likely an error)
         const textResponse = await response.text();
         console.error('Server returned non-JSON response:', textResponse);
-        alert('Server error occurred. Please check your PHP backend configuration.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Server Error',
+          text: 'Server error occurred. Please check your PHP backend configuration.',
+          confirmButtonColor: '#10b981'
+        });
       }
     } catch (error) {
       console.error('Error during signup:', error);
-      alert('An error occurred during signup. Please try again later.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Connection Error',
+        text: 'An error occurred during signup. Please try again later.',
+        confirmButtonColor: '#10b981'
+      });
     }
   };
 
