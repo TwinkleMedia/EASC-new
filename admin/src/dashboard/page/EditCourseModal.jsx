@@ -104,9 +104,11 @@ const EditCourseModal = ({ course, isOpen, onClose, onSuccess }) => {
       }
      // Now that formData is fully prepared, you can log it
      console.log("Sending form data:", Object.fromEntries(formData.entries()));
-      // Make the API call to update the course
+      // Make the API call to update the course 
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
       const response = await axios.post(
-        "http://localhost/EASCBackend/index.php?route=updatecourse",
+        `${apiUrl}index.php?route=updatecourse`,
         formData,
         {
           headers: {

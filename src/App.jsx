@@ -12,7 +12,7 @@ import ResetPassword from './components/TopNavbar/ResetPassword';
 import MyCartPage from './components/Pages/MyCartPage';
 import BlogPage from './components/Pages/BlogPage';
 import Footer from './components/Footer/Footer';
-
+import MyBooksPage from './components/Pages/MyBooksPage';
 function App() {
   return (
     <Router>
@@ -31,7 +31,14 @@ function App() {
             <Route path="/services/energy-audit" element={<EnergyAuditPage />} />
             {/* Add more routes for other service pages */}
             <Route path="/blogs" element={<BlogPage />} />
-            
+            <Route 
+              path="/my-books" 
+              element={
+              
+                  <MyBooksPage />
+               
+              } 
+            />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/login" element={<LoginSystem />} /> {/* Updated to use the LoginSystem component */}
             <Route path="/reset-password" element={<ResetPassword />} />

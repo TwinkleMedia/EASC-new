@@ -37,7 +37,9 @@ export default function CouponList({ refreshTrigger }) {
   const handleStatusToggle = async (couponId, currentStatus) => {
     try {
       // Use the new endpoint
-      const response = await fetch(`http://localhost/EASCBackend/UpdateCouponStatus.php/${couponId}`, {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
+      const response = await fetch(`${apiUrl}UpdateCouponStatus.php/${couponId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

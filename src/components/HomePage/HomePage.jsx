@@ -16,7 +16,9 @@ const HomePage = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost/EASCBackend/index.php?route=listcourses");
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
+    
+        const response = await fetch( `${apiUrl}index.php?route=listcourses`);
         if (!response.ok) {
           throw new Error('Failed to fetch courses');
         }

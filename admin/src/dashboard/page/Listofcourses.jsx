@@ -17,8 +17,10 @@ const Listofcourses = () => {
       try {
         setLoading(true);
         // Replace with your actual API endpoint
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
         const response = await axios.get(
-          "http://localhost/EASCBackend/index.php?route=listcourses"
+          `${apiUrl}index.php?route=listcourses`
         );
 
         // Check the structure of the response and extract the courses array

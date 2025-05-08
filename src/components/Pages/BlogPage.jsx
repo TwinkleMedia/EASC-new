@@ -13,8 +13,10 @@ const BlogPage = () => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true);
-        // Replace with your actual API endpoint
-        const response = await fetch("http://localhost/EASCBackend/index.php?route=blogs");
+        // Replace with your actual API endpoint `${apiUrl}index.php?route=listcourses`  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+    
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
+        const response = await fetch(`${apiUrl}index.php?route=blogs`);
         const data = await response.json();
         
         // Set the first post as featured

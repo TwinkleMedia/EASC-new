@@ -17,8 +17,11 @@ const CEAExamsPage = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
+    
+
         const response = await fetch(
-          "http://localhost/EASCBackend/index.php?route=listcourses"
+          `${apiUrl}index.php?route=listcourses`
         );
 
         if (!response.ok) {

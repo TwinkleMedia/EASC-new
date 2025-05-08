@@ -99,9 +99,10 @@ const UploadCourses = () => {
       if (formData.textBook) {
         submitData.append('textBook', formData.textBook);
       }
-      
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
       // Example API call - replace with your actual endpoint
-      const response = await fetch('http://localhost/EASCBackend/index.php?route=courses', {
+      const response = await fetch(`${apiUrl}index.php?route=courses`, {
         method: 'POST',
         body: submitData,
         // No Content-Type header is needed as FormData sets it automatically with boundary

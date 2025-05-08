@@ -246,7 +246,8 @@ const handleCheckout = async () => {
     console.log("Sending payment data:", paymentData);
     
     // Make API request to create order
-    const response = await fetch('http://localhost/EASCBackend/index.php?route=razorpay_payment', {
+    const apiUrl = import.meta.env.VITE_API_BASE_URL;
+    const response = await fetch(`${apiUrl}index.php?route=razorpay_payment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

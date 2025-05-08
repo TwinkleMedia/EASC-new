@@ -93,18 +93,7 @@ const DashboardOverview = () => {
             <span className="text-sm text-gray-500">5 hours ago</span>
           </div>
           
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3">
-                <BarChart2 size={18} />
-              </div>
-              <div>
-                <p className="font-medium">New course uploaded</p>
-                <p className="text-sm text-gray-500">Data Science Fundamentals</p>
-              </div>
-            </div>
-            <span className="text-sm text-gray-500">Yesterday</span>
-          </div>
+          
         </div>
       </div>
     </>
