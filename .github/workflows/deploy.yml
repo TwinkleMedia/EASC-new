@@ -22,7 +22,7 @@ jobs:
           npm run build
 
       - name: Deploy user frontend to main domain
-           uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_USER_HOST }}
           username: ${{ secrets.FTP_USER_USERNAME }}
@@ -46,7 +46,7 @@ jobs:
           npm run build
 
       - name: Deploy admin frontend to subdomain
-         uses: SamKirkland/FTP-Deploy-Action@v4.3.
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_ADMIN_HOST }}
           username: ${{ secrets.FTP_ADMIN_USERNAME }}
