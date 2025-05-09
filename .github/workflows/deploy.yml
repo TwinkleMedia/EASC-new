@@ -1,0 +1,55 @@
+name: Deploy User & Admin Projects to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-user-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .  # Root directory for user frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies and build user app
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy user frontend to main domain
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_USER_HOST }}
+          username: ${{ secrets.FTP_USER_USERNAME }}
+          password: ${{ secrets.FTP_USER_PASSWORD }}
+          local-dir: ./dist
+          server-dir: /public_html
+
+  deploy-admin-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./admin  # Admin project folder
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies and build admin app
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy admin frontend to subdomain
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_ADMIN_HOST }}
+          username: ${{ secrets.FTP_ADMIN_USERNAME }}
+          password: ${{ secrets.FTP_ADMIN_PASSWORD }}
+          local-dir: ./dist
+          server-dir: /public_html/admin
