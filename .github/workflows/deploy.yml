@@ -32,6 +32,7 @@ jobs:
 
   deploy-admin-frontend:
     runs-on: ubuntu-latest
+ 
     defaults:
       run:
         working-directory: ./admin  # Admin project folder
@@ -46,10 +47,13 @@ jobs:
           npm run build
 
       - name: Deploy admin frontend to subdomain
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_ADMIN_HOST }}
-          username: ${{ secrets.FTP_ADMIN_USERNAME }}
-          password: ${{ secrets.FTP_ADMIN_PASSWORD }}
-          local-dir: ./dist/
-          server-dir: /public_html/eascadmin/  # <-- FIXED (added slash)
+  uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+  with:
+    server: ${{ secrets.FTP_ADMIN_HOST }}
+    username: ${{ secrets.FTP_ADMIN_USERNAME }}
+    password: ${{ secrets.FTP_ADMIN_PASSWORD }}
+    local-dir: ./dist/
+    server-dir: /public_html/eascadmin/
+    dangerous-clean-slate: true
+    log-level: verbose
+
