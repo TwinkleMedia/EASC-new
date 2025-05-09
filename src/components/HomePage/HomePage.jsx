@@ -138,7 +138,7 @@ const HomePage = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">About Us</h2>
             <div className="w-20 h-1 bg-emerald-600 mx-auto"></div>
             <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto">
-              Energy Auditors Information Centre (EAIC) is dedicated to training the next generation of energy efficiency professionals.
+              Energy Auditors Information Centre (EAIC) is dedicated to training the next generationzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz of energy efficiency professionals.
             </p>
           </div>
           

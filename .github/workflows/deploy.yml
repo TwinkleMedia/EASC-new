@@ -38,40 +38,40 @@ jobs:
           log-level: verbose
           dangerous-clean-slate: true
 
-  deploy-admin-frontend:
-    runs-on: ubuntu-latest
-    needs: deploy-user-frontend  # Make this run after the user frontend
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  # deploy-admin-frontend:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy-user-frontend  # Make this run after the user frontend
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      - name: Check if admin directory exists
-        run: |
-          if [ -d "admin" ]; then
-            echo "Admin directory exists"
-          else
-            echo "Admin directory does not exist - listing root content"
-            ls -la
-            exit 1
-          fi
+  #     - name: Check if admin directory exists
+  #       run: |
+  #         if [ -d "admin" ]; then
+  #           echo "Admin directory exists"
+  #         else
+  #           echo "Admin directory does not exist - listing root content"
+  #           ls -la
+  #           exit 1
+  #         fi
 
-      - name: Install dependencies and build admin app
-        working-directory: ./admin
-        run: |
-          npm install
-          npm run build
+  #     - name: Install dependencies and build admin app
+  #       working-directory: ./admin
+  #       run: |
+  #         npm install
+  #         npm run build
 
-      - name: List build output (debug)
-        working-directory: ./admin
-        run: ls -la dist/
+  #     - name: List build output (debug)
+  #       working-directory: ./admin
+  #       run: ls -la dist/
 
-      - name: Deploy admin frontend to subdomain
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_ADMIN_HOST }}
-          username: ${{ secrets.FTP_ADMIN_USERNAME }}
-          password: ${{ secrets.FTP_ADMIN_PASSWORD }}
-          local-dir: ./admin/dist/
-          server-dir: /public_html/eascadmin/
-          log-level: verbose
-          dangerous-clean-slate: true
+  #     - name: Deploy admin frontend to subdomain
+  #       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+  #       with:
+  #         server: ${{ secrets.FTP_ADMIN_HOST }}
+  #         username: ${{ secrets.FTP_ADMIN_USERNAME }}
+  #         password: ${{ secrets.FTP_ADMIN_PASSWORD }}
+  #         local-dir: ./admin/dist/
+  #         server-dir: /public_html/eascadmin/
+  #         log-level: verbose
+  #         dangerous-clean-slate: true
