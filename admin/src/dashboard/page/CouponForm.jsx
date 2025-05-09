@@ -34,7 +34,8 @@ export default function CouponForm({ onCouponCreated }) {
     
     try {
       // Use the direct PHP file endpoint
-      const response = await fetch('http://localhost/EASCBackend/SaveCoupon.php', {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+      const response = await fetch(`${apiUrl}SaveCoupon.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

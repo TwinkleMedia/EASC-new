@@ -21,7 +21,9 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost/EASCBackend/index.php?route=logins', credentials);
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  
+      const res = await axios.post(`${apiUrl}index.php?route=logins`, credentials);
       console.log('Server response data:', res.data);
       if (res.data.success) {
         navigate('/dashboard');

@@ -17,7 +17,9 @@ export default function CouponList({ refreshTrigger }) {
     setLoading(true);
     try {
       // Use the new endpoint
-      const response = await fetch('http://localhost/EASCBackend/GetCoupons.php');
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+   
+      const response = await fetch(`${apiUrl}index.php?route=get_coupons`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch coupons: ${response.status}`);
@@ -38,8 +40,8 @@ export default function CouponList({ refreshTrigger }) {
     try {
       // Use the new endpoint
       const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
-      const response = await fetch(`${apiUrl}UpdateCouponStatus.php/${couponId}`, {
+    
+      const response = await fetch(`${apiUrl}index.php?route=UpdateCouponStatus&id=${couponId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +79,8 @@ export default function CouponList({ refreshTrigger }) {
     
     try {
       // Use the new endpoint
-      const response = await fetch(`http://localhost/EASCBackend/DeleteCoupon.php/${selectedCoupon.id}`, {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+      const response = await fetch(`${apiUrl}index.php?route=delectCoupon&id=${selectedCoupon.id}`, {
         method: 'DELETE',
       });
 

@@ -309,9 +309,11 @@ const handleCheckout = async () => {
       order_id: result.order_id,
       handler: async function(response) {
         console.log("Razorpay payment successful:", response);
-        
+
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
+    
         try {
-          const verificationResponse = await fetch('http://localhost/EASCBackend/index.php?route=verify_payment', {
+          const verificationResponse = await fetch(`${apiUrl}index.php?route=verify_payment`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

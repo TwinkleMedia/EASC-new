@@ -61,7 +61,9 @@ const LoginSystem = () => {
     setLoginError("");
     
     try {
-      const res = await fetch("http://localhost/EASCBackend/index.php?route=user_login", {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
+      const res = await fetch(`${apiUrl}index.php?route=user_login`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -142,7 +144,9 @@ const LoginSystem = () => {
   
   try {
     // First check if email exists in your database
-    const checkResponse = await fetch("http://localhost/EASCBackend/index.php?route=check_email", {
+    const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
+    const checkResponse = await fetch(`${apiUrl}index.php?route=check_email`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -157,9 +161,12 @@ const LoginSystem = () => {
       setIsSubmitting(false);
       return;
     }
+
+    const apiUrls = import.meta.env.VITE_API_BASE_URL;
+
     
     // Generate a reset token on backend
-    const tokenResponse = await fetch("http://localhost/EASCBackend/index.php?route=generate_reset_token", {
+    const tokenResponse = await fetch(`${apiUrls}index.php?route=generate_reset_token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -239,7 +246,11 @@ const LoginSystem = () => {
     
     try {
       // Call the PHP signup endpoint
-      const response = await fetch('http://localhost/EASCBackend/index.php?route=user_signup', {
+      
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
+     
+      const response = await fetch(`${apiUrl}index.php?route=user_signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
