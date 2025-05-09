@@ -30,7 +30,7 @@ jobs:
           local-dir: ./dist/
           server-dir: /public_html/  # <-- FIXED (added slash)
 
- deploy-admin-frontend:
+  deploy-admin-frontend:
   runs-on: ubuntu-latest
 
   defaults:
