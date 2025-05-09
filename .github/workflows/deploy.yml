@@ -36,7 +36,7 @@ jobs:
           local-dir: ./dist/
           server-dir: /public_html/
           log-level: verbose
-          dangerous-clean-slate: true
+          dangerous-clean-slate: false
 
   # deploy-admin-frontend:
   #   runs-on: ubuntu-latest
