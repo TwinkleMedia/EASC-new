@@ -16,10 +16,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: List repository content (debug)
+        run: ls -la
+        
       - name: Install dependencies and build user app
         run: |
           npm install
           npm run build
+
+      - name: List build output (debug)
+        run: ls -la ./dist/
 
       - name: Deploy user frontend to main domain
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -34,20 +40,29 @@ jobs:
 
   deploy-admin-frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./admin
-
+    needs: deploy-user-frontend  # Make this run after the user frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Check if admin directory exists
+        run: |
+          if [ -d "admin" ]; then
+            echo "Admin directory exists"
+          else
+            echo "Admin directory does not exist - listing root content"
+            ls -la
+            exit 1
+          fi
+
       - name: Install dependencies and build admin app
+        working-directory: ./admin
         run: |
           npm install
           npm run build
 
       - name: List build output (debug)
+        working-directory: ./admin
         run: ls -la dist/
 
       - name: Deploy admin frontend to subdomain
@@ -56,7 +71,7 @@ jobs:
           server: ${{ secrets.FTP_ADMIN_HOST }}
           username: ${{ secrets.FTP_ADMIN_USERNAME }}
           password: ${{ secrets.FTP_ADMIN_PASSWORD }}
-          local-dir: ./dist/
+          local-dir: ./admin/dist/
           server-dir: /public_html/eascadmin/
           log-level: verbose
           dangerous-clean-slate: true
