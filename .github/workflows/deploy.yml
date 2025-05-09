@@ -52,4 +52,4 @@ jobs:
           username: ${{ secrets.FTP_ADMIN_USERNAME }}
           password: ${{ secrets.FTP_ADMIN_PASSWORD }}
           local-dir: ./dist
-          server-dir: /public_html/admin
+          server-dir: /public_html/eascadmin
