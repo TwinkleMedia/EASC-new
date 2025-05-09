@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.FTP_USER_USERNAME }}
           password: ${{ secrets.FTP_USER_PASSWORD }}
           local-dir: ./dist/
-          server-dir: /public_html
+          server-dir: /public_html/  # <-- FIXED (added slash)
 
   deploy-admin-frontend:
     runs-on: ubuntu-latest
@@ -52,4 +52,4 @@ jobs:
           username: ${{ secrets.FTP_ADMIN_USERNAME }}
           password: ${{ secrets.FTP_ADMIN_PASSWORD }}
           local-dir: ./dist/
-          server-dir: /public_html/eascadmin
+          server-dir: /public_html/eascadmin/  # <-- FIXED (added slash)
