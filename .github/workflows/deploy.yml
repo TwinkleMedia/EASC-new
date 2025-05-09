@@ -30,30 +30,32 @@ jobs:
           local-dir: ./dist/
           server-dir: /public_html/  # <-- FIXED (added slash)
 
-  deploy-admin-frontend:
-    runs-on: ubuntu-latest
- 
-    defaults:
-      run:
-        working-directory: ./admin  # Admin project folder
+ deploy-admin-frontend:
+  runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  defaults:
+    run:
+      working-directory: ./admin
 
-      - name: Install dependencies and build admin app
-        run: |
-          npm install
-          npm run build
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Deploy admin frontend to subdomain
-  uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-  with:
-    server: ${{ secrets.FTP_ADMIN_HOST }}
-    username: ${{ secrets.FTP_ADMIN_USERNAME }}
-    password: ${{ secrets.FTP_ADMIN_PASSWORD }}
-    local-dir: ./dist/
-    server-dir: /public_html/eascadmin/
-    dangerous-clean-slate: true
-    log-level: verbose
+    - name: Install dependencies and build admin app
+      run: |
+        npm install
+        npm run build
 
+    - name: List build output (debug)
+      run: ls -la dist/
+
+    - name: Deploy admin frontend to subdomain
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_ADMIN_HOST }}
+        username: ${{ secrets.FTP_ADMIN_USERNAME }}
+        password: ${{ secrets.FTP_ADMIN_PASSWORD }}
+        local-dir: ./dist/
+        server-dir: /public_html/eascadmin/
+        log-level: verbose
+        dangerous-clean-slate: true
